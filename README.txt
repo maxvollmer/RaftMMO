@@ -5,7 +5,7 @@ Github: https://github.com/maxvollmer/RaftMMO
 Patreon: https://www.patreon.com/maxvollmer
 Youtube: https://www.youtube.com/channel/UCMLx0EEXSe5NiQ8fQgtN9PQ
 
-VERSION 0.1.0-alpha
+VERSION 0.1.1-alpha
 
 Release date: 2020-11-01
 

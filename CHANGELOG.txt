@@ -1,0 +1,6 @@
+0.1.1-alpha
+* Removed obsolete debug info from log
+* Fixed unpatching harmony patches from other mods on mod unload
+
+0.1.0-alpha
+* First public version
