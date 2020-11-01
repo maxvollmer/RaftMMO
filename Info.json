@@ -1,0 +1,11 @@
+﻿{
+  "Id": "RaftMMO",
+  "DisplayName": "RaftMMO",
+  "Author": "Max Vollmer",
+  "Version": "0.1.0-alpha",
+  "ManagerVersion": "0.22.12",
+  "AssemblyName": "RaftMMO.dll",
+  "EntryMethod": "RaftMMO.ModEntry.UMMModEntry.Load",
+  "HomePage": "https://www.nexusmods.com/raft/mods/5",
+  "Repository": "https://github.com/maxvollmer/RaftMMO"
+}

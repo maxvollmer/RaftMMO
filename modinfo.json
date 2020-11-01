@@ -1,0 +1,13 @@
+{
+  "name": "RaftMMO",
+  "author": "Max Vollmer",
+  "description": "Links up multiple game sessions so you can meet other rafts.",
+  "version": "0.1.0-alpha",
+  "license": "MIT License",
+  "icon": "icon.png",
+  "banner": "banner.png",
+  "gameVersion": "12.01",
+  "updateUrl": "https://www.raftmodding.com/api/v1/mods/raftmmo/version.txt",
+  "isModPermanent": false,
+  "excludedFiles": []
+}
