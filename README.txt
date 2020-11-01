@@ -5,9 +5,9 @@ Github: https://github.com/maxvollmer/RaftMMO
 Patreon: https://www.patreon.com/maxvollmer
 Youtube: https://www.youtube.com/channel/UCMLx0EEXSe5NiQ8fQgtN9PQ
 
-VERSION 0.0.5-alpha
+VERSION 0.1.0-alpha
 
-Release date: -
+Release date: 2020-11-01
 
 =======
 This is a mod for Raft that adds support for meeting other rafts from other game sessions.
@@ -51,7 +51,7 @@ raftmmo.assets created with CreateAssetBundles.cs script by TeKGameR: https://ap
 
 Third party licenses apply where applicable.
 
-Shout out to testers (order randomized): JPKing888, Lemming_On_Edge, Auraya
+Shout out to testers (order randomized): JPKing888, Lemming_On_Edge, Auraya, Fynikoto
 
 ===
 This mod is released as is without any guarantee that it works and without any warranties whatsoever. Use on your own risk. If you don't know what you are doing, don't do it.
