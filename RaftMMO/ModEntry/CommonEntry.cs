@@ -57,7 +57,7 @@ namespace RaftMMO.ModEntry
             WorldShiftManager.OnWorldShift -= BuoyManager.OnWorldShift;
             WorldShiftManager.OnWorldShift -= RemoteRaft.OnWorldShift;
 
-            HarmonyInstance.UnpatchAll();
+            HarmonyInstance.UnpatchAll("de.maxvollmer.raftmmo");
             HarmonyInstance = null;
 
             RemoteSession.Disconnect();

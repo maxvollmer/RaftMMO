@@ -504,8 +504,6 @@ namespace RaftMMO.MainMenu
         {
             var optionMenuParent = SettingsMenuInjector.GetOptionMenuParent();
 
-            GameObjectDebugger.DebugPrint(optionMenuParent);
-
             var container = modSettingsTab.content;
             container.DestroyAllChildren();
 
