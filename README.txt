@@ -5,9 +5,9 @@ Github: https://github.com/maxvollmer/RaftMMO
 Patreon: https://www.patreon.com/maxvollmer
 Youtube: https://www.youtube.com/channel/UCMLx0EEXSe5NiQ8fQgtN9PQ
 
-VERSION 0.1.1-alpha
+VERSION 0.1.2-alpha
 
-Release date: 2020-11-01
+Release date: 2020-11-07
 
 =======
 This is a mod for Raft that adds support for meeting other rafts from other game sessions.
@@ -33,16 +33,6 @@ RaftMMO Discord: https://discord.gg/uFGd2YR
 RaftMMO on NexusMods (for Unity Mod Manager): https://www.nexusmods.com/raft/mods/5
 
 RaftMMO on RaftModding (for RaftModLoader): https://www.raftmodding.com/mods/raftmmo
-
-======
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ===
 Buoy asset by Cross Walk Studios: https://assetstore.unity.com/packages/3d/props/exterior/simple-buoy-4734

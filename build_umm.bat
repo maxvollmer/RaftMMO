@@ -10,7 +10,7 @@ mkdir "build_umm/"
 mkdir "build_umm/RaftMMO/"
 mkdir "build_umm/RaftMMO/Data"
 
-robocopy "bin" "build_umm/RaftMMO" RaftMMO.dll README.txt LICENSE.txt Info.json
+robocopy "bin" "build_umm/RaftMMO" RaftMMO.dll README.txt CHANGELOG.txt LICENSE.txt Info.json
 robocopy "./Data" "build_umm/RaftMMO/Data" *.*
 
 if exist "Build\\RaftMMO.zip" ( del "Build\\RaftMMO.zip" )

@@ -74,6 +74,9 @@
     <Compile Include="RaftMMO\World\LocalRaft.cs" />
     <Compile Include="RaftMMO\World\RemoteRaftScreenshotTaker.cs" />
     <Compile Include="RaftMMO\World\WeatherManagerPatch.cs" />
+    <Content Include="CHANGELOG.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Data\banner.png" />
     <Content Include="Data\icon.png" />
     <Content Include="Info.json">

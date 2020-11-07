@@ -102,28 +102,35 @@ namespace RaftMMO.ModEntry
                 return;
             }
 
-            SettingsSaver.Update();
+            try
+            {
+                SettingsSaver.Update();
 
-            if (CanWePlay)
-            {
-                BuoyManager.Update();
-                RemoteSession.Update();
-                RemoteRaft.Update();
-                TradeManager.Update();
-                ClientSession.Update();
-                RaftDataManager.Update();
-                RemoteRaftScreenshotTaker.Update();
+                if (CanWePlay)
+                {
+                    BuoyManager.Update();
+                    RemoteSession.Update();
+                    RemoteRaft.Update();
+                    TradeManager.Update();
+                    ClientSession.Update();
+                    RaftDataManager.Update();
+                    RemoteRaftScreenshotTaker.Update();
+                }
+                else
+                {
+                    RemoteSession.Disconnect();
+                    TradeManager.Abort();
+                    RemoteRaft.Destroy();
+                    BuoyManager.Destroy();
+                    ClientSession.Disconnect();
+                    RaftDataManager.Clear();
+                    SteamHelper.CloseAll();
+                    LightSingularityPatch.Destroy();
+                }
             }
-            else
+            catch (System.Exception e)
             {
-                RemoteSession.Disconnect();
-                TradeManager.Abort();
-                RemoteRaft.Destroy();
-                BuoyManager.Destroy();
-                ClientSession.Disconnect();
-                RaftDataManager.Clear();
-                SteamHelper.CloseAll();
-                LightSingularityPatch.Destroy();
+                RaftMMOLogger.LogError("RaftMMO has caught an exception: " + e.ToString());
             }
         }
     }

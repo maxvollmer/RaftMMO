@@ -156,6 +156,12 @@ namespace RaftMMO.World
 
             foreach (var block in raftData.blockData)
             {
+                if (block == null)
+                {
+                    RaftMMOLogger.LogVerbose("RemoteRaft.RemoveRaftParts: Received null block");
+                    continue;
+                }
+
                 if (blockCache.Remove(block, out GameObject blockObject))
                 {
                     Object.Destroy(blockObject);

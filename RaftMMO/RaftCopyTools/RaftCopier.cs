@@ -126,67 +126,87 @@ namespace RaftMMO.RaftCopyTools
 
             foreach (var block in blockData)
             {
+                if (block == null)
+                {
+                    RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Received null block");
+                    continue;
+                }
+
                 GameObject blockObject = new GameObject();
 
-                var blockPrefab = ItemManager.GetItemByIndex(block.itemIndex).settings_buildable.GetBlockPrefab((DPS)block.dpsType);
-                blockPrefab.transform.position = block.position.Vector3;
-                blockPrefab.transform.rotation = Quaternion.Euler(block.rotation.Vector3);
-
-                var cookItems = blockPrefab.GetComponentsInChildren<CookingSlot>()
-                    .Select(cookingSlot => Traverse.Create(cookingSlot).Field("itemConnections").GetValue<List<CookItemConnection>>())
-                    .SelectMany(cookingConnetion => cookingConnetion)
-                    .Where(cookingConnetion => cookingConnetion != null)
-                    .Select(cookingConnetion => new GameObject[] { cookingConnetion.rawItem, cookingConnetion.cookedItem })
-                    .SelectMany(item => item)
-                    .Where(item => item != null);
-
-                foreach (var renderer in blockPrefab.GetComponentsInChildren<Renderer>())
+                try
                 {
-                    // Skip meshes for cook items
-                    if (cookItems.Where(cookItem => renderer.transform.IsChildOf(cookItem.transform)).Any())
-                        continue;
+                    var blockPrefab = ItemManager.GetItemByIndex(block.itemIndex)?.settings_buildable?.GetBlockPrefab((DPS)block.dpsType);
+                    if (blockPrefab != null)
+                    {
+                        blockPrefab.transform.position = block.position.Vector3;
+                        blockPrefab.transform.rotation = Quaternion.Euler(block.rotation.Vector3);
 
-                    if (renderer is MeshRenderer meshRenderer)
-                    {
-                        CopyMesh(meshRenderer, block.bitmaskType, block.bitmaskValue).transform.SetParent(blockObject.transform, true);
-                    }
-                    else if (renderer is SkinnedMeshRenderer skinnedMeshRenderer)
-                    {
-                        CopySkinnedMesh(skinnedMeshRenderer).transform.SetParent(blockObject.transform, true);
-                    }
-                    else if (renderer is ParticleSystemRenderer particleSystemRenderer)
-                    {
-                        CopyParticles(particleSystemRenderer).transform.SetParent(blockObject.transform, true);
-                    }
-                }
+                        var cookItems = blockPrefab.GetComponentsInChildren<CookingSlot>()
+                            .Select(cookingSlot => Traverse.Create(cookingSlot).Field("itemConnections").GetValue<List<CookItemConnection>>())
+                            .SelectMany(cookingConnetion => cookingConnetion)
+                            .Where(cookingConnetion => cookingConnetion != null)
+                            .Select(cookingConnetion => new GameObject[] { cookingConnetion.rawItem, cookingConnetion.cookedItem })
+                            .SelectMany(item => item)
+                            .Where(item => item != null);
 
-                if (block.uniqueColorIndex > 0)
-                {
-                    SO_ColorValue colorValue = ColorPicker.GetColorFromUniqueIndex(block.uniqueColorIndex);
-                    if (colorValue != null)
-                    {
-                        foreach (var renderer in blockObject.GetComponentsInChildren<Renderer>())
+                        foreach (var renderer in blockPrefab.GetComponentsInChildren<Renderer>())
                         {
-                            var matPropBlock = new MaterialPropertyBlock();
-                            renderer.GetPropertyBlock(matPropBlock);
-                            matPropBlock.SetFloat("_PaintSwitch", 1f);
-                            matPropBlock.SetFloat("_Hue", colorValue.hue);
-                            matPropBlock.SetFloat("_Saturation", colorValue.saturation);
-                            matPropBlock.SetFloat("_Value", colorValue.value);
-                            renderer.SetPropertyBlock(matPropBlock);
+                            // Skip meshes for cook items
+                            if (cookItems.Where(cookItem => renderer.transform.IsChildOf(cookItem.transform)).Any())
+                                continue;
+
+                            if (renderer is MeshRenderer meshRenderer)
+                            {
+                                CopyMesh(meshRenderer, block.bitmaskType, block.bitmaskValue).transform.SetParent(blockObject.transform, true);
+                            }
+                            else if (renderer is SkinnedMeshRenderer skinnedMeshRenderer)
+                            {
+                                CopySkinnedMesh(skinnedMeshRenderer).transform.SetParent(blockObject.transform, true);
+                            }
+                            else if (renderer is ParticleSystemRenderer particleSystemRenderer)
+                            {
+                                CopyParticles(particleSystemRenderer).transform.SetParent(blockObject.transform, true);
+                            }
+                        }
+
+                        if (block.uniqueColorIndex > 0)
+                        {
+                            SO_ColorValue colorValue = ColorPicker.GetColorFromUniqueIndex(block.uniqueColorIndex);
+                            if (colorValue != null)
+                            {
+                                foreach (var renderer in blockObject.GetComponentsInChildren<Renderer>())
+                                {
+                                    var matPropBlock = new MaterialPropertyBlock();
+                                    renderer.GetPropertyBlock(matPropBlock);
+                                    matPropBlock.SetFloat("_PaintSwitch", 1f);
+                                    matPropBlock.SetFloat("_Hue", colorValue.hue);
+                                    matPropBlock.SetFloat("_Saturation", colorValue.saturation);
+                                    matPropBlock.SetFloat("_Value", colorValue.value);
+                                    renderer.SetPropertyBlock(matPropBlock);
+                                }
+                            }
+                        }
+
+                        foreach (var lightSingularityExternal in blockPrefab.GetComponentsInChildren<LightSingularityExternal>())
+                        {
+                            CopyLight(lightSingularityExternal, lights).transform.SetParent(blockObject.transform, true);
                         }
                     }
-                }
+                    else
+                    {
+                        RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Received invalid item index: ", block.itemIndex);
+                    }
 
-                foreach (var lightSingularityExternal in blockPrefab.GetComponentsInChildren<LightSingularityExternal>())
+                    blockObject.transform.SetParent(remoteRaft.transform, false);
+
+                    RestorePlants(blockObject, block.plants);
+                    RestoreColliders(blockObject, blockPrefab, block.colliders);
+                }
+                catch (System.Exception e)
                 {
-                    CopyLight(lightSingularityExternal, lights).transform.SetParent(blockObject.transform, true);
+                    RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Caught exception when restoring block ", block, ": ", e);
                 }
-
-                blockObject.transform.SetParent(remoteRaft.transform, false);
-
-                RestorePlants(blockObject, block.plants);
-                RestoreColliders(blockObject, blockPrefab, block.colliders);
 
                 if (blockCache.Remove(block))
                 {

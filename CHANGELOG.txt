@@ -1,3 +1,7 @@
+0.1.2-alpha
+* Fixed invisible rafts and lag when remote session sends invalid block data
+* Improved logging
+
 0.1.1-alpha
 * Removed obsolete debug info from log
 * Fixed unpatching harmony patches from other mods on mod unload
