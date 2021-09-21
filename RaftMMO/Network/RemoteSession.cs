@@ -625,11 +625,18 @@ namespace RaftMMO.Network
                 if (!BuoyManager.IsCloseEnoughToConnectToAll() && !SettingsManager.GetFavoritedRaftsByDate.Any(raftEntry => SteamHelper.IsSameSteamID(raftEntry.steamID, playerSteamID.m_SteamID)))
                     continue;
 
-                if (Globals.TEMPDEBUGConnectToLocalPlayer || playerSteamID != localPlayer.steamID)
-                {
-                    SteamHelper.Connect(playerSteamID);
-                    lobbyPlayers.Add(playerSteamID);
-                }
+                // don't connect to yourself unless we are debugging locally
+                if (playerSteamID == localPlayer.steamID && !Globals.TEMPDEBUGConnectToLocalPlayer)
+                    continue;
+
+                // if the setting is enabled, only connect to steam friends
+                if (SettingsManager.Settings.OnlyMeetSteamFriends
+                    && SteamFriends.GetFriendRelationship(playerSteamID) != EFriendRelationship.k_EFriendRelationshipFriend
+                    && playerSteamID != localPlayer.steamID)
+                    continue;
+
+                SteamHelper.Connect(playerSteamID);
+                lobbyPlayers.Add(playerSteamID);
             }
             lobbyPlayers.Shuffle();
 

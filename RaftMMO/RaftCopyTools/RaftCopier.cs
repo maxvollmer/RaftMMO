@@ -170,21 +170,35 @@ namespace RaftMMO.RaftCopyTools
                             }
                         }
 
-                        if (block.uniqueColorIndex > 0)
+                        if (block.HasColorA() || block.HasColorB())
                         {
-                            SO_ColorValue colorValue = ColorPicker.GetColorFromUniqueIndex(block.uniqueColorIndex);
-                            if (colorValue != null)
+                            foreach (var renderer in blockObject.GetComponentsInChildren<Renderer>())
                             {
-                                foreach (var renderer in blockObject.GetComponentsInChildren<Renderer>())
+                                var matPropBlock = new MaterialPropertyBlock();
+                                renderer.GetPropertyBlock(matPropBlock);
+
+                                if (block.HasColorA())
                                 {
-                                    var matPropBlock = new MaterialPropertyBlock();
-                                    renderer.GetPropertyBlock(matPropBlock);
-                                    matPropBlock.SetFloat("_PaintSwitch", 1f);
-                                    matPropBlock.SetFloat("_Hue", colorValue.hue);
-                                    matPropBlock.SetFloat("_Saturation", colorValue.saturation);
-                                    matPropBlock.SetFloat("_Value", colorValue.value);
-                                    renderer.SetPropertyBlock(matPropBlock);
+                                    matPropBlock.SetColor("_Side1_Base", new Color(block.colorA_r, block.colorA_g, block.colorA_b, block.colorA_a));
+                                    matPropBlock.SetColor("_Side1_Pattern", new Color(block.patternColorA_r, block.patternColorA_g, block.patternColorA_b, block.patternColorA_a));
+                                    matPropBlock.SetFloat("_Pattern_Index1", block.patternIndexA);
+                                    matPropBlock.SetFloat("_Pattern1_Masked", block.isMaskedA ? 1f : 0f);
+                                    matPropBlock.SetFloat("_Pattern1_MaskFlip", block.isMaskFlippedA ? 1f : 0f);
                                 }
+
+                                if (block.HasColorB())
+                                {
+                                    matPropBlock.SetColor("_Side2_Base", new Color(block.colorB_r, block.colorB_g, block.colorB_b, block.colorB_a));
+                                    matPropBlock.SetColor("_Side2_Pattern", new Color(block.patternColorB_r, block.patternColorB_g, block.patternColorB_b, block.patternColorB_a));
+                                    matPropBlock.SetFloat("_Pattern_Index2", block.patternIndexB);
+                                    matPropBlock.SetFloat("_Pattern2_Masked", block.isMaskedB ? 1f : 0f);
+                                    matPropBlock.SetFloat("_Pattern2_MaskFlip", block.isMaskFlippedB ? 1f : 0f);
+                                }
+
+                                matPropBlock.SetFloat("_PaintSide", block.paintSide);
+                                matPropBlock.SetFloat("_DecoPaintSelect", block.decoPaintSelect);
+
+                                renderer.SetPropertyBlock(matPropBlock);
                             }
                         }
 

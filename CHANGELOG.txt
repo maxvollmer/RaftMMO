@@ -1,3 +1,9 @@
+0.2.0-alpha
+* Updated code to work with current version of Raft
+* Added pink dot on receiver indicating position of other raft
+* Added option to meet only Steam friends
+* Added smoke effect over buoys to make them easier to locate on the ocean (can be turned off in settings)
+
 0.1.2-alpha
 * Fixed invisible rafts and lag when remote session sends invalid block data
 * Improved logging

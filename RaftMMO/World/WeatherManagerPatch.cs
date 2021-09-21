@@ -6,8 +6,6 @@ namespace RaftMMO.World
 {
     public static class WeatherManagerPatch
     {
-        private static bool forcedWeather = false;
-
         [HarmonyPatch(typeof(WeatherManager), "Update")]
         public class WeatherManagerUpdatePatch
         {
@@ -17,53 +15,35 @@ namespace RaftMMO.World
             {
                 if (Semih_Network.IsHost && CommonEntry.CanWePlay && BuoyManager.IsCloseEnoughToConnect())
                 {
-                    __instance.ForceWeather(WeatherType.Calm);
+                    ForceWeather(__instance, UniqueWeatherType.Calm);
                     return false;
                 }
-                forcedWeather = false;
                 return true;
             }
         }
 
-        [HarmonyPatch(typeof(WeatherManager), "StartNewWeather", typeof(int), typeof(bool))]
-        public class WeatherManagerStartNewWeatherPatch
+        [HarmonyPatch(typeof(WeatherManager), "SetWeather", typeof(Weather), typeof(bool))]
+        public class WeatherManagerSetWeatherPatch
         {
             [HarmonyPrefix]
             [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Harmony Patch")]
-            static bool Prefix()
+            static bool Prefix(Weather weather, bool instant)
             {
                 if (Semih_Network.IsHost && CommonEntry.CanWePlay && BuoyManager.IsCloseEnoughToConnect())
                 {
-                    return false;
+                    return weather.so_weather.uniqueWeatherType == UniqueWeatherType.Calm && instant;
                 }
-                forcedWeather = false;
                 return true;
             }
         }
 
-        private static void ForceWeather(this WeatherManager weatherManager, WeatherType weatherType)
+        private static void ForceWeather(WeatherManager weatherManager, UniqueWeatherType weatherType)
         {
-            if (forcedWeather)
-                return;
-
-            Weather[] allWeathers = Traverse.Create(weatherManager).Field("weatherConnections").GetValue<Randomizer>().GetAllItems<Weather>();
-            if (allWeathers == null)
-                return;
-
-            RaftMMOLogger.LogInfo("ForceWeather: " + weatherType + ", current weather: " + weatherManager.GetCurrentWeatherType());
-
-            foreach (Weather weather in allWeathers)
+            if (weatherManager.GetCurrentWeatherType() != UniqueWeatherType.Calm
+                && !Traverse.Create(weatherManager).Field("changingWeather").GetValue<bool>())
             {
-                RaftMMOLogger.LogVerbose("weather.name: " + weather.name);
-                if (weather != null && weather.name.Contains(weatherType.ToString(), System.StringComparison.OrdinalIgnoreCase))
-                {
-                    RaftMMOLogger.LogVerbose("Found: " + weather.name);
-
-                    weatherManager.StopAllCoroutines();
-                    weatherManager.StartCoroutine(weatherManager.StartNewWeather(weather, false));
-                    forcedWeather = true;
-                    break;
-                }
+                RaftMMOLogger.LogInfo("ForceWeather: " + weatherType + ", current weather: " + weatherManager.GetCurrentWeatherType());
+                weatherManager.SetWeather(UniqueWeatherType.Calm, true);
             }
         }
     }

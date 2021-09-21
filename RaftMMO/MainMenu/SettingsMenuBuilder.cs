@@ -507,6 +507,20 @@ namespace RaftMMO.MainMenu
             var container = modSettingsTab.content;
             container.DestroyAllChildren();
 
+            CreateText(optionMenuParent, container, "General");
+            CreateDivider(optionMenuParent, container);
+
+            CreateCheckbox(optionMenuParent, container, "Only Meet Steam Friends", false, SettingsManager.Settings.OnlyMeetSteamFriends, (bool enabled) => {
+                SettingsManager.Settings.OnlyMeetSteamFriends = enabled;
+                SettingsSaver.IsDirty = true;
+            });
+
+            CreateCheckbox(optionMenuParent, container, "Enable Buoy Smoke", false, SettingsManager.Settings.EnableBuoySmoke, (bool enabled) => {
+                SettingsManager.Settings.EnableBuoySmoke = enabled;
+                SettingsSaver.IsDirty = true;
+            });
+
+            CreateSpacer(optionMenuParent, container, 20f);
             CreateText(optionMenuParent, container, "Logging");
             CreateDivider(optionMenuParent, container);
 

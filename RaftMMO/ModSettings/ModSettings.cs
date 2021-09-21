@@ -13,6 +13,8 @@ namespace RaftMMO.ModSettings
             public PlayerEntry[] MetPlayers = new PlayerEntry[0];
             public int LogLevel = (int)RaftMMO.ModSettings.LogLevel.WARNING;
             public bool LogVerbose = false;
+            public bool OnlyMeetSteamFriends = false;
+            public bool EnableBuoySmoke = true;
         }
 
         public SerializableModSettings Serialize()
@@ -22,6 +24,8 @@ namespace RaftMMO.ModSettings
             serialized.MetPlayers = MetPlayers.Values.ToArray();
             serialized.LogLevel = (int)LogLevel;
             serialized.LogVerbose = LogVerbose;
+            serialized.OnlyMeetSteamFriends = OnlyMeetSteamFriends;
+            serialized.EnableBuoySmoke = EnableBuoySmoke;
             return serialized;
         }
 
@@ -39,6 +43,8 @@ namespace RaftMMO.ModSettings
             }
             LogLevel = (LogLevel)serialized.LogLevel;
             LogVerbose = serialized.LogVerbose;
+            OnlyMeetSteamFriends = serialized.OnlyMeetSteamFriends;
+            EnableBuoySmoke = serialized.EnableBuoySmoke;
         }
 
         public Dictionary<string, RaftEntry> MetRafts = new Dictionary<string, RaftEntry>();
@@ -47,5 +53,8 @@ namespace RaftMMO.ModSettings
 
         public LogLevel LogLevel = LogLevel.WARNING;
         public bool LogVerbose = false;
+
+        public bool OnlyMeetSteamFriends = false;
+        public bool EnableBuoySmoke = true;
     }
 }

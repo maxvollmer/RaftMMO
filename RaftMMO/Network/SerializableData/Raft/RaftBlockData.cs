@@ -1,4 +1,5 @@
-﻿using RaftMMO.RaftCopyTools;
+﻿using HarmonyLib;
+using RaftMMO.RaftCopyTools;
 using RaftMMO.Utilities;
 using System;
 using System.Collections.Generic;
@@ -14,13 +15,56 @@ namespace RaftMMO.Network.SerializableData
     {
         public readonly int itemIndex = 0;
         public readonly int dpsType = 0;
-        public readonly uint uniqueColorIndex = 0;
+
+        // Basic values
         public readonly Vector position = new Vector(Vector3.zero);
         public readonly Vector rotation = new Vector(Vector3.zero);
         public readonly TileBitmaskType bitmaskType;
         public readonly int bitmaskValue = 0;
         public readonly RaftColliderData[] colliders = new RaftColliderData[0];
         public readonly RaftPlantData[] plants = new RaftPlantData[0];
+
+        // Colors for side A
+        public readonly float colorA_r = 0f;
+        public readonly float colorA_g = 0f;
+        public readonly float colorA_b = 0f;
+        public readonly float colorA_a = 0f;
+        public readonly float patternColorA_r = 0f;
+        public readonly float patternColorA_g = 0f;
+        public readonly float patternColorA_b = 0f;
+        public readonly float patternColorA_a = 0f;
+        public readonly uint patternIndexA = 0;
+        public readonly bool isMaskedA = false;
+        public readonly bool isMaskFlippedA = false;
+
+        public bool HasColorA()
+        {
+            return colorA_r != 0f || colorA_g != 0f || colorA_b != 0f || colorA_a != 0f
+                || patternColorA_r != 0f || patternColorA_g != 0f || patternColorA_b != 0f || patternColorA_a != 0f;
+        }
+
+        public bool HasColorB()
+        {
+            return colorB_r != 0f || colorB_r != 0f || colorB_b != 0f || colorB_a != 0f
+                || patternColorB_r != 0f || patternColorB_r != 0f || patternColorB_b != 0f || patternColorB_a != 0f;
+        }
+
+        // Colors for side B
+        public readonly float colorB_r = 0f;
+        public readonly float colorB_g = 0f;
+        public readonly float colorB_b = 0f;
+        public readonly float colorB_a = 0f;
+        public readonly float patternColorB_r = 0f;
+        public readonly float patternColorB_g = 0f;
+        public readonly float patternColorB_b = 0f;
+        public readonly float patternColorB_a = 0f;
+        public readonly uint patternIndexB = 0;
+        public readonly bool isMaskedB = false;
+        public readonly bool isMaskFlippedB = false;
+
+        // Paint settings
+        public readonly int paintSide = 0;
+        public readonly int decoPaintSelect = 0;
 
         [NonSerialized()]
         private int hash = 0;
@@ -34,7 +78,41 @@ namespace RaftMMO.Network.SerializableData
             this.dpsType = (int)block.dpsType;
             this.position = new Vector(block.transform.localPosition);
             this.rotation = new Vector(block.transform.localRotation.eulerAngles);
-            this.uniqueColorIndex = block.GetUniqueColorIndex();
+
+            MaterialPropertyBlock matPropBlock = Traverse.Create(block).Field("matPropBlock").GetValue<MaterialPropertyBlock>();
+            if (matPropBlock != null)
+            {
+                Color colorA = matPropBlock.GetColor("_Side1_Base");
+                this.colorA_r = colorA.r;
+                this.colorA_g = colorA.g;
+                this.colorA_b = colorA.b;
+                this.colorA_a = colorA.a;
+                Color patternColorA = matPropBlock.GetColor("_Side1_Pattern");
+                this.patternColorA_r = patternColorA.r;
+                this.patternColorA_g = patternColorA.g;
+                this.patternColorA_b = patternColorA.b;
+                this.patternColorA_a = patternColorA.a;
+                this.patternIndexA = (uint)matPropBlock.GetFloat("_Pattern_Index1");
+                this.isMaskedA = matPropBlock.GetFloat("_Pattern1_Masked") == 1f;
+                this.isMaskFlippedA = (uint)matPropBlock.GetFloat("_Pattern1_MaskFlip") == 1f;
+
+                Color colorB = matPropBlock.GetColor("_Side2_Base");
+                this.colorB_r = colorB.r;
+                this.colorB_g = colorB.g;
+                this.colorB_b = colorB.b;
+                this.colorB_a = colorB.a;
+                Color patternColorB = matPropBlock.GetColor("_Side2_Pattern");
+                this.patternColorB_r = patternColorB.r;
+                this.patternColorB_g = patternColorB.g;
+                this.patternColorB_b = patternColorB.b;
+                this.patternColorB_a = patternColorB.a;
+                this.patternIndexB = (uint)matPropBlock.GetFloat("_Pattern_Index2");
+                this.isMaskedB = matPropBlock.GetFloat("_Pattern2_Masked") == 1f;
+                this.isMaskFlippedB = (uint)matPropBlock.GetFloat("_Pattern2_MaskFlip") == 1f;
+
+                this.paintSide = (int)matPropBlock.GetFloat("_PaintSide");
+                this.decoPaintSelect = (int)matPropBlock.GetFloat("_DecoPaintSelect");
+            }
 
             var bitmaskTile = block.GetComponent<BitmaskTile>();
             if (bitmaskTile != null)
@@ -48,8 +126,8 @@ namespace RaftMMO.Network.SerializableData
                 this.bitmaskValue = 0;
             }
 
-            colliders = block.GetComponentsInChildren<Collider>().Where(RaftCopier.IsColliderForSending).Select(collider => new RaftColliderData(collider)).ToArray();
-            plants = block.GetComponentsInChildren<Plant>().Select(plant => new RaftPlantData(plant)).ToArray();
+            this.colliders = block.GetComponentsInChildren<Collider>().Where(RaftCopier.IsColliderForSending).Select(collider => new RaftColliderData(collider)).ToArray();
+            this.plants = block.GetComponentsInChildren<Plant>().Select(plant => new RaftPlantData(plant)).ToArray();
         }
 
         public override bool Equals(object obj)
@@ -58,7 +136,6 @@ namespace RaftMMO.Network.SerializableData
             {
                 return itemIndex == raftBlockData.itemIndex
                     && dpsType == raftBlockData.dpsType
-                    && uniqueColorIndex == raftBlockData.uniqueColorIndex
                     && position.Vector3 == raftBlockData.position.Vector3
                     && rotation.Vector3 == raftBlockData.rotation.Vector3
                     && bitmaskType == raftBlockData.bitmaskType
@@ -81,9 +158,8 @@ namespace RaftMMO.Network.SerializableData
                     ^ ((int)bitmaskType) << 4
                     ^ bitmaskValue << 5
                     ^ dpsType << 6
-                    ^ uniqueColorIndex.GetHashCode() << 7
-                    ^ HashPlants() << 8
-                    ^ HashColliders() << 9;
+                    ^ HashPlants() << 7
+                    ^ HashColliders() << 8;
                 hasHash = true;
             }
             return hash;
@@ -94,7 +170,6 @@ namespace RaftMMO.Network.SerializableData
             return "{"
                 + "itemIndex: " + itemIndex + ","
                 + "dpsType: " + dpsType + ","
-                + "uniqueColorIndex: " + uniqueColorIndex + ","
                 + "position: " + position.Vector3 + ","
                 + "rotation: " + rotation.Vector3 + ","
                 + "bitmaskType: " + bitmaskType + ","

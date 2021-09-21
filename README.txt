@@ -5,9 +5,9 @@ Github: https://github.com/maxvollmer/RaftMMO
 Patreon: https://www.patreon.com/maxvollmer
 Youtube: https://www.youtube.com/channel/UCMLx0EEXSe5NiQ8fQgtN9PQ
 
-VERSION 0.1.2-alpha
+VERSION 0.2.0-alpha
 
-Release date: 2020-11-07
+Release date: 2021-09-21
 
 =======
 This is a mod for Raft that adds support for meeting other rafts from other game sessions.
@@ -17,7 +17,7 @@ If you get close to a buoy you might meet another raft.
 You can trade resources and items with players from the other raft.
 
 =======
-Copyright (c) 2020 Max Vollmer
+Copyright (c) 2020-2021 Max Vollmer
 
 Requires the game Raft on Steam.
 
@@ -42,6 +42,8 @@ raftmmo.assets created with CreateAssetBundles.cs script by TeKGameR: https://ap
 Third party licenses apply where applicable.
 
 Shout out to testers (order randomized): JPKing888, Lemming_On_Edge, Auraya, Fynikoto
+
+Also thanks to Aidanamite for providing the community with an unofficial patched version of this mod after a game update broke it.
 
 ===
 This mod is released as is without any guarantee that it works and without any warranties whatsoever. Use on your own risk. If you don't know what you are doing, don't do it.

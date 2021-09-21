@@ -72,6 +72,7 @@
     <Compile Include="RaftMMO\Utilities\RaftMMOLogger.cs" />
     <Compile Include="RaftMMO\Utilities\SimpleJson\SimpleJson.cs" />
     <Compile Include="RaftMMO\World\LocalRaft.cs" />
+    <Compile Include="RaftMMO\World\ReceiverPatch.cs" />
     <Compile Include="RaftMMO\World\RemoteRaftScreenshotTaker.cs" />
     <Compile Include="RaftMMO\World\WeatherManagerPatch.cs" />
     <Content Include="CHANGELOG.txt">
@@ -125,11 +126,12 @@
     <Content Include="Data\raftmmo.assets" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp-firstpass.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp.dll" Condition="'$(AssemblyCSharpSource)' == 'DLL' ">
-      <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Posix.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\Mono.Posix.dll</HintPath>
@@ -148,9 +150,6 @@
     </Reference>
     <Reference Include="System.Configuration.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\System.Configuration.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Core.dll">
-      <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\System.Core.dll</HintPath>
     </Reference>
     <Reference Include="System.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\System.dll</HintPath>
@@ -176,9 +175,6 @@
     <Reference Include="Unity.Recorder.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\Unity.Recorder.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Recorder.Samples.dll">
-      <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\Unity.Recorder.Samples.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.TextMeshPro.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\Unity.TextMeshPro.dll</HintPath>
     </Reference>
@@ -200,9 +196,6 @@
     <Reference Include="UnityEngine.AudioModule.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.AudioModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.BaselibModule.dll">
-      <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.BaselibModule.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.ClothModule.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.ClothModule.dll</HintPath>
     </Reference>
@@ -223,9 +216,6 @@
     </Reference>
     <Reference Include="UnityEngine.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.FileSystemHttpModule.dll">
-      <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.FileSystemHttpModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.GameCenterModule.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.GameCenterModule.dll</HintPath>
@@ -250,9 +240,6 @@
     </Reference>
     <Reference Include="UnityEngine.LocalizationModule.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.LocalizationModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.Networking.dll">
-      <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.Networking.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
@@ -287,9 +274,6 @@
     <Reference Include="UnityEngine.StreamingModule.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.StreamingModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.StyleSheetsModule.dll">
-      <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.StyleSheetsModule.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.SubstanceModule.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.SubstanceModule.dll</HintPath>
     </Reference>
@@ -307,12 +291,6 @@
     </Reference>
     <Reference Include="UnityEngine.TilemapModule.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.TilemapModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.Timeline.dll">
-      <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.Timeline.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TimelineModule.dll">
-      <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.TimelineModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TLSModule.dll">
       <HintPath>$(SteamAppsLocation)common\Raft\Raft_Data/Managed\UnityEngine.TLSModule.dll</HintPath>
@@ -386,12 +364,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(AssemblyCSharpSource)' == 'Project' ">
-    <ProjectReference Include="$(AssemblyCSharpLocation)\Assembly-CSharp.csproj">
-      <Project>{2949c07e-4f9e-45ce-a38f-e37a03ab8552}</Project>
-      <Name>Assembly-CSharp</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
