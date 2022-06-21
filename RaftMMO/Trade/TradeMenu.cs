@@ -316,14 +316,14 @@ namespace RaftMMO.Trade
 
             tradingWithText.GetComponent<Text>().text = "TRADING WITH " + SteamHelper.GetSteamUserName(cTradeSteamID, false);
 
-            if (Semih_Network.IsHost && !buttonPositionsAreHost)
+            if (Raft_Network.IsHost && !buttonPositionsAreHost)
             {
                 addAsFriendButton.transform.localPosition = new Vector3(-125f, -30f, 0f);
                 chatButton.transform.localPosition = new Vector3(-125f, -30f, 0f);
                 blockUserButton.transform.localPosition = new Vector3(0f, -30f, 0f);
                 buttonPositionsAreHost = true;
             }
-            else if (!Semih_Network.IsHost && buttonPositionsAreHost)
+            else if (!Raft_Network.IsHost && buttonPositionsAreHost)
             {
                 addAsFriendButton.transform.localPosition = new Vector3(-100f, -30f, 0f);
                 chatButton.transform.localPosition = new Vector3(-100f, -30f, 0f);
@@ -331,7 +331,7 @@ namespace RaftMMO.Trade
                 buttonPositionsAreHost = false;
             }
 
-            blockRaftButton.SetActiveSafe(Semih_Network.IsHost);
+            blockRaftButton.SetActiveSafe(Raft_Network.IsHost);
 
             switch (SteamFriends.GetFriendRelationship(cTradeSteamID))
             {
@@ -424,7 +424,7 @@ namespace RaftMMO.Trade
 
             CanvasHelper.ActiveMenu = (MenuType)1337;
 
-            var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             localPlayer.PersonController.IsMovementFree = false;
 
             if (tradeInventoryGameObject == null)
@@ -508,7 +508,7 @@ namespace RaftMMO.Trade
         {
             if (isBlockingRaft)
             {
-                if (Semih_Network.IsHost && RemoteSession.IsConnectedToPlayer)
+                if (Raft_Network.IsHost && RemoteSession.IsConnectedToPlayer)
                 {
                     SettingsManager.BlockRaft(RemoteSession.ConnectedPlayer.m_SteamID, RemoteSession.ConnectedSessionID);
                     RemoteSession.Disconnect();
@@ -670,7 +670,7 @@ namespace RaftMMO.Trade
 
         private static int AddWishListItems(GameObject wishList, List<Slot> wishListSlots, IEnumerable<Item_Base> items, int yindex, int numSlotsPerRow)
         {
-            var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             var playerInventory = localPlayer.Inventory;
 
             var slotSize = 200f / numSlotsPerRow;
@@ -731,7 +731,7 @@ namespace RaftMMO.Trade
 
         private static List<Slot> CreateSlots(GameObject gameObject, float y)
         {
-            var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             var playerInventory = localPlayer.Inventory;
 
             List<Slot> slots = new List<Slot>();
@@ -751,7 +751,7 @@ namespace RaftMMO.Trade
 
         private static GameObject CreateBackground(GameObject gameObject, float x, float y, float width, float height)
         {
-            var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             var playerInventory = localPlayer.Inventory;
             var backgroundPrefab = playerInventory.gameObject.transform.FindChildRecursively("BrownBackground").gameObject;
             if (backgroundPrefab != null)
@@ -769,7 +769,7 @@ namespace RaftMMO.Trade
 
         private static GameObject AddText(GameObject gameObject, string text, float y, int fontSize = 40, float width = 400f)
         {
-            var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             var playerInventory = localPlayer.Inventory;
             var textPrefab = playerInventory.gameObject.transform.FindChildRecursively("InventoryText").gameObject;
             if (textPrefab != null)
@@ -793,7 +793,7 @@ namespace RaftMMO.Trade
 
         private static void AddDivider(GameObject gameObject, float y)
         {
-            var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             var playerInventory = localPlayer.Inventory;
             var dividerPrefab = playerInventory.gameObject.transform.FindChildRecursively("divider").gameObject;
             if (dividerPrefab != null)
@@ -822,7 +822,7 @@ namespace RaftMMO.Trade
             OnModify();
             ReturnLocalSlotItemsToInventory();
 
-            var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             localPlayer.PersonController.IsMovementFree = true;
 
             localPlayer.Inventory.secondInventory = null;
@@ -849,7 +849,7 @@ namespace RaftMMO.Trade
 
         private static void ReturnLocalSlotItemsToInventory()
         {
-            var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             foreach (var slot in localSlots)
             {
                 if (slot.IsEmpty)

@@ -86,13 +86,13 @@ namespace RaftMMO.Trade
 
         public static void Update()
         {
-            if (Semih_Network.IsHost && !RemoteSession.IsConnectedToPlayer)
+            if (Raft_Network.IsHost && !RemoteSession.IsConnectedToPlayer)
             {
                 Abort();
                 return;
             }
 
-            if (!Semih_Network.IsHost && (!ComponentManager<Semih_Network>.Value.IsConnectedToHost || !ClientSession.IsHostConnectedToPlayer))
+            if (!Raft_Network.IsHost && (!ComponentManager<Raft_Network>.Value.IsConnectedToHost || !ClientSession.IsHostConnectedToPlayer))
             {
                 Abort();
                 return;
@@ -103,7 +103,7 @@ namespace RaftMMO.Trade
                 if (Player.LocalPlayerIsDead)
                 {
                     TradeMenu.Close();
-                    var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+                    var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
                     localPlayer.PersonController.IsMovementFree = false;
                 }
                 else if (TradeMenu.TimeSinceOpened > 100 && MyInput.GetButtonDown("Cancel") && completeTradeMessage == null)
@@ -123,7 +123,7 @@ namespace RaftMMO.Trade
 
             if (remoteTradePlayer != null
                 && remotePlayersTradeData.TryGetValue(remoteTradePlayer.steamID.m_SteamID, out PlayerTradeData remotePlayerTradeData)
-                && (Globals.TEMPDEBUGConnectToLocalPlayer || SteamHelper.IsSameSteamID(remotePlayerTradeData.RemoteTradePlayerSteamID, ComponentManager<Semih_Network>.Value.LocalSteamID.m_SteamID)))
+                && (Globals.TEMPDEBUGConnectToLocalPlayer || SteamHelper.IsSameSteamID(remotePlayerTradeData.RemoteTradePlayerSteamID, ComponentManager<Raft_Network>.Value.LocalSteamID.m_SteamID)))
             {
                 TradeMenu.UpdateRemoteTradeData(remotePlayerTradeData);
             }
@@ -242,7 +242,7 @@ namespace RaftMMO.Trade
 
         public static void HandleCompleteTradeMessage(CompleteTradeMessage message)
         {
-            if (SteamHelper.IsSameSteamID(message.remoteTradePlayerSteamID, ComponentManager<Semih_Network>.Value.LocalSteamID.m_SteamID))
+            if (SteamHelper.IsSameSteamID(message.remoteTradePlayerSteamID, ComponentManager<Raft_Network>.Value.LocalSteamID.m_SteamID))
             {
                 remoteCompleteTradeMessage = message;
                 CompleteTradeIfCan();

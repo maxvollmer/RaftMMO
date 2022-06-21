@@ -13,7 +13,7 @@ namespace RaftMMO.World
             [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Harmony Patch")]
             static bool Prefix(WeatherManager __instance)
             {
-                if (Semih_Network.IsHost && CommonEntry.CanWePlay && BuoyManager.IsCloseEnoughToConnect())
+                if (Raft_Network.IsHost && CommonEntry.CanWePlay && BuoyManager.IsCloseEnoughToConnect())
                 {
                     ForceWeather(__instance, UniqueWeatherType.Calm);
                     return false;
@@ -29,7 +29,7 @@ namespace RaftMMO.World
             [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Harmony Patch")]
             static bool Prefix(Weather weather, bool instant)
             {
-                if (Semih_Network.IsHost && CommonEntry.CanWePlay && BuoyManager.IsCloseEnoughToConnect())
+                if (Raft_Network.IsHost && CommonEntry.CanWePlay && BuoyManager.IsCloseEnoughToConnect())
                 {
                     return weather.so_weather.uniqueWeatherType == UniqueWeatherType.Calm && instant;
                 }

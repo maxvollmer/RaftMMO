@@ -325,9 +325,9 @@ namespace RaftMMO.World
                 currentValidRemotePlayerSteamIDs.UnionWith(players);
             }
 
-            if (Semih_Network.IsHost && RemoteSession.IsConnectedToPlayer)
+            if (Raft_Network.IsHost && RemoteSession.IsConnectedToPlayer)
                 currentValidRemotePlayerSteamIDs.Add(RemoteSession.ConnectedPlayer.m_SteamID);
-            else if (!Semih_Network.IsHost && ClientSession.IsHostConnectedToPlayer)
+            else if (!Raft_Network.IsHost && ClientSession.IsHostConnectedToPlayer)
                 currentValidRemotePlayerSteamIDs.Add(ClientSession.ConnectedSteamID);
 
             remotePlayers.Keys.Where(steamID => !currentValidRemotePlayerSteamIDs.Contains(steamID)).ToList().ForEach(steamID =>

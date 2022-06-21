@@ -14,7 +14,7 @@ namespace RaftMMO.Network.Messages
         public TradeMessage(List<SerializableData.Item> offerItems, List<SerializableData.Item> wishItems, ulong remoteTradePlayerSteamID, bool isAcceptingTrade)
             : base(MessageType.TRADE, true)
         {
-            this.steamID = ComponentManager<Semih_Network>.Value.LocalSteamID.m_SteamID;
+            this.steamID = ComponentManager<Raft_Network>.Value.LocalSteamID.m_SteamID;
             this.offerItems = offerItems.ToArray();
             this.wishItems = wishItems.ToArray();
             this.remoteTradePlayerSteamID = remoteTradePlayerSteamID;

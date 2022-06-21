@@ -72,7 +72,7 @@ namespace RaftMMO.RaftCopyTools
 
         public static void Update()
         {
-            if (Semih_Network.IsHost)
+            if (Raft_Network.IsHost)
             {
                 var steamIDs = ClientSession.GetSessionPlayers().Select(p => p.steamID.m_SteamID);
                 Clients = Clients.Where(c => steamIDs.Contains(c.Key)).ToDictionary(c => c.Key, c => c.Value);

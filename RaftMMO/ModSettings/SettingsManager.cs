@@ -93,7 +93,7 @@ namespace RaftMMO.ModSettings
                 {
                     raftEntry.isFavorite = false;
 
-                    if (Semih_Network.IsHost && RemoteSession.IsConnectedPlayer(new CSteamID(steamID)) && RemoteSession.ConnectedSessionID == sessionID)
+                    if (Raft_Network.IsHost && RemoteSession.IsConnectedPlayer(new CSteamID(steamID)) && RemoteSession.ConnectedSessionID == sessionID)
                     {
                         RemoteSession.Disconnect();
                     }
@@ -122,8 +122,8 @@ namespace RaftMMO.ModSettings
                 SettingsSaver.IsDirty = true;
                 SettingsMenuBuilder.RefreshRaftEntries();
 
-                if ((Semih_Network.IsHost && RemoteSession.IsConnectedPlayer(new CSteamID(steamID)) && RemoteSession.ConnectedSessionID == sessionID)
-                    || (!Semih_Network.IsHost && SteamHelper.IsSameSteamID(ClientSession.ConnectedSteamID, steamID) && ClientSession.ConnectedSessionID == sessionID))
+                if ((Raft_Network.IsHost && RemoteSession.IsConnectedPlayer(new CSteamID(steamID)) && RemoteSession.ConnectedSessionID == sessionID)
+                    || (!Raft_Network.IsHost && SteamHelper.IsSameSteamID(ClientSession.ConnectedSteamID, steamID) && ClientSession.ConnectedSessionID == sessionID))
                 {
                     AddMetRaft(steamID, sessionID, true);
                 }
@@ -248,11 +248,11 @@ namespace RaftMMO.ModSettings
 
         private static string GetCurrentRemoteSessionUniqueID()
         {
-            if (Semih_Network.IsHost && RemoteSession.IsConnectedToPlayer)
+            if (Raft_Network.IsHost && RemoteSession.IsConnectedToPlayer)
             {
                 return MakeUniqueID(RemoteSession.ConnectedPlayer.m_SteamID, RemoteSession.ConnectedSessionID);
             }
-            else if (!Semih_Network.IsHost && ClientSession.IsHostConnectedToPlayer)
+            else if (!Raft_Network.IsHost && ClientSession.IsHostConnectedToPlayer)
             {
                 return MakeUniqueID(ClientSession.ConnectedSteamID, ClientSession.ConnectedSessionID);
             }

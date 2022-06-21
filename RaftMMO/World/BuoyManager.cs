@@ -72,7 +72,7 @@ namespace RaftMMO.World
             if (!CommonEntry.CanWePlay)
                 return;
 
-            if (Semih_Network.IsHost)
+            if (Raft_Network.IsHost)
             {
                 var raft = ComponentManager<Raft>.Value;
                 Vector2 raft2DPos = new Vector2(raft.transform.position.x, raft.transform.position.z);
@@ -134,7 +134,7 @@ namespace RaftMMO.World
             if (!CommonEntry.CanWePlay)
                 return;
 
-            if (Semih_Network.IsHost)
+            if (Raft_Network.IsHost)
                 return;
 
             var index = 0;

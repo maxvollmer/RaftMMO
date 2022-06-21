@@ -60,7 +60,7 @@ namespace RaftMMO.RaftCopyTools
             if (block.buildableItem == null)
                 return false;
 
-            Network_Player localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            Network_Player localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             if (block == localPlayer.BlockCreator.selectedBlock)
                 return false;
 
@@ -99,7 +99,7 @@ namespace RaftMMO.RaftCopyTools
             {
                 GameObject plantObject = new GameObject();
 
-                var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+                var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
                 var plantPrefab = localPlayer.PlantManager.GetPlantByIndex(plant.plantUniqueItemIndex);
                 if (plantPrefab != null)
                 {

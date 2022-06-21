@@ -209,7 +209,7 @@ namespace RaftMMO.Trade
             if (GameModeValueManager.GetCurrentGameModeValue().gameMode == GameMode.Creative)
                 return true;
 
-            var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
 
             return localPlayer.NoteBookUI.caravanNotes.Where(note => note.isUnlocked).Any()
                 || localPlayer.NoteBookUI.tangaroaNotes.Where(note => note.isUnlocked).Any()
@@ -345,7 +345,7 @@ namespace RaftMMO.Trade
             if (GameModeValueManager.GetCurrentGameModeValue().gameMode == GameMode.Creative)
                 return true;
 
-            var localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             return localPlayer.NoteBookUI.vasagatanNotes.Where(note => note.isUnlocked).Any()
                 || localPlayer.NoteBookUI.balboaNotes.Where(note => note.isUnlocked).Any()
                 || localPlayer.NoteBookUI.caravanNotes.Where(note => note.isUnlocked).Any()

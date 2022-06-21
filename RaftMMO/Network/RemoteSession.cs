@@ -98,7 +98,7 @@ namespace RaftMMO.Network
 
         public static void Update()
         {
-            if (!Semih_Network.IsHost)
+            if (!Raft_Network.IsHost)
                 return;
 
             if (BuoyManager.IsCloseEnoughToConnect())
@@ -614,7 +614,7 @@ namespace RaftMMO.Network
 
             int numplayers = SteamMatchmaking.GetNumLobbyMembers(lobbies[joinedLobbyIndex]);
 
-            Network_Player localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            Network_Player localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             for (int i = 0; i < numplayers; i++)
             {
                 CSteamID playerSteamID = SteamMatchmaking.GetLobbyMemberByIndex(lobbies[joinedLobbyIndex], i);

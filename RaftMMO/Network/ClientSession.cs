@@ -31,7 +31,7 @@ namespace RaftMMO.Network
 
         public static void Update()
         {
-            if (Semih_Network.IsHost)
+            if (Raft_Network.IsHost)
             {
                 List<ulong> steamIDs = new List<ulong>();
 
@@ -99,7 +99,7 @@ namespace RaftMMO.Network
 
         public static IEnumerable<Network_Player> GetSessionPlayers()
         {
-            return ComponentManager<Semih_Network>.Value.remoteUsers.Where(u => u.Key.IsValid() && !u.Value.IsLocalPlayer).Select(u => u.Value);
+            return ComponentManager<Raft_Network>.Value.remoteUsers.Where(u => u.Key.IsValid() && !u.Value.IsLocalPlayer).Select(u => u.Value);
         }
 
         public static void HandleConnectedMessage(Messages.ConnectedMessage message)

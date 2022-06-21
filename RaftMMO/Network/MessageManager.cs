@@ -165,7 +165,7 @@ namespace RaftMMO.Network
                 1337);
             }
 
-            Network_Player localPlayer = ComponentManager<Semih_Network>.Value.GetLocalPlayer();
+            Network_Player localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
 
             if (!result)
             {
@@ -194,7 +194,7 @@ namespace RaftMMO.Network
                     raft.transform.rotation,
                     Globals.RemotePosRotation));
 
-            foreach (var player in ComponentManager<Semih_Network>.Value.remoteUsers.Values)
+            foreach (var player in ComponentManager<Raft_Network>.Value.remoteUsers.Values)
             {
                 if (player != null)
                 {
@@ -236,28 +236,28 @@ namespace RaftMMO.Network
 
         public static void SendTradeUpdate(List<SerializableData.Item> offerItems, List<SerializableData.Item> wishItems, ulong remoteTradePlayerSteamID, bool isAcceptingTrade)
         {
-            if (Semih_Network.IsHost)
+            if (Raft_Network.IsHost)
             {
                 if (RemoteSession.IsConnectedToPlayer)
                 {
                     SendMessage(RemoteSession.ConnectedPlayer, new TradeMessage(offerItems, wishItems, remoteTradePlayerSteamID, isAcceptingTrade));
                 }
             }
-            else if (ComponentManager<Semih_Network>.Value.IsConnectedToHost)
+            else if (ComponentManager<Raft_Network>.Value.IsConnectedToHost)
             {
-                SendMessage(ComponentManager<Semih_Network>.Value.HostID, new TradeMessage(offerItems, wishItems, remoteTradePlayerSteamID, isAcceptingTrade));
+                SendMessage(ComponentManager<Raft_Network>.Value.HostID, new TradeMessage(offerItems, wishItems, remoteTradePlayerSteamID, isAcceptingTrade));
             }
         }
 
         public static void SendCompleteTradeMessage(CompleteTradeMessage message)
         {
-            if (Semih_Network.IsHost && RemoteSession.IsConnectedToPlayer)
+            if (Raft_Network.IsHost && RemoteSession.IsConnectedToPlayer)
             {
                 SendMessage(RemoteSession.ConnectedPlayer, message);
             }
-            else if (!Semih_Network.IsHost && ComponentManager<Semih_Network>.Value.IsConnectedToHost && ClientSession.IsHostConnectedToPlayer)
+            else if (!Raft_Network.IsHost && ComponentManager<Raft_Network>.Value.IsConnectedToHost && ClientSession.IsHostConnectedToPlayer)
             {
-                SendMessage(ComponentManager<Semih_Network>.Value.HostID, message);
+                SendMessage(ComponentManager<Raft_Network>.Value.HostID, message);
             }
         }
 
@@ -408,11 +408,11 @@ namespace RaftMMO.Network
                 }
             }
 
-            if (Semih_Network.IsHost)
+            if (Raft_Network.IsHost)
             {
                 ProcessHostMessage(remoteSteamID, message);
             }
-            else if (ComponentManager<Semih_Network>.Value.IsConnectedToHost)
+            else if (ComponentManager<Raft_Network>.Value.IsConnectedToHost)
             {
                 ProcessClientMessage(remoteSteamID, message);
             }
@@ -493,16 +493,16 @@ namespace RaftMMO.Network
         {
             RaftMMOLogger.LogVerbose("RequestFullRaftUpdate");
 
-            if (Semih_Network.IsHost)
+            if (Raft_Network.IsHost)
             {
                 if (RemoteSession.IsConnectedToPlayer)
                 {
                     SendMessage(RemoteSession.ConnectedPlayer, new BaseMessage(MessageType.REQUEST_FULL_RAFT, true));
                 }
             }
-            else if (ComponentManager<Semih_Network>.Value.IsConnectedToHost)
+            else if (ComponentManager<Raft_Network>.Value.IsConnectedToHost)
             {
-                SendMessage(ComponentManager<Semih_Network>.Value.HostID, new BaseMessage(MessageType.REQUEST_FULL_RAFT, true));
+                SendMessage(ComponentManager<Raft_Network>.Value.HostID, new BaseMessage(MessageType.REQUEST_FULL_RAFT, true));
             }
 
             RaftMMOLogger.LogVerbose("RequestFullRaftUpdate Done!");
@@ -514,7 +514,7 @@ namespace RaftMMO.Network
                 return;
 
             // Following messages are only accepted from our host
-            if (ComponentManager<Semih_Network>.Value.HostID != steamID)
+            if (ComponentManager<Raft_Network>.Value.HostID != steamID)
                 return;
 
             if (message.type == MessageType.DISCONNECT)

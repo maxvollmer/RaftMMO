@@ -89,9 +89,9 @@ namespace RaftMMO.ModEntry
             get
             {
                 return !Globals.IsDisabled
-                    && !Semih_Network.InMenuScene
+                    && !Raft_Network.InMenuScene
                     && BlockCreator.GetPlacedBlocks().Count > 0
-                    && (Semih_Network.IsHost || ComponentManager<Semih_Network>.Value.IsConnectedToHost);
+                    && (Raft_Network.IsHost || ComponentManager<Raft_Network>.Value.IsConnectedToHost);
             }
         }
 
