@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using RaftMMO.Network;
 using Steamworks;
 using System.Reflection;
@@ -8,13 +8,18 @@ namespace RaftMMO.Utilities
 {
     public class FakePlayerCreator
     {
+
         public static Network_Player Create(ulong steamID, int modelIndex, Vector3 position)
         {
+
+            if( !Raft_Network.IsHost ){ return null; }
+
             var network = ComponentManager<Raft_Network>.Value;
-            Network_Player player = Object.Instantiate<Network_Player>(network.playerPrefab, position, Quaternion.identity);
+            var player = Object.Instantiate(network.playerPrefab, position, Quaternion.identity);
             
-            //if (modelIndex < 0 || modelIndex >= player.modelPrefabs.Length)
-            modelIndex = 0;
+            if (modelIndex < 0 || modelIndex >= CharacterManager.SO_Characters.Count){
+                modelIndex = 0;
+            }
 
             string name = SteamHelper.GetSteamUserName(new CSteamID(steamID), true);
 
@@ -23,21 +28,38 @@ namespace RaftMMO.Utilities
                 Name = name,
                 ModelIndex = modelIndex
             };
-
+            
             if (steamID == network.LocalSteamID.m_SteamID)
             {
                 steamID += 1;
             }
-
+           
             player.characterSettings = characterSettings;
+
+            
+
             Traverse.Create(player).Field("network").SetValue(network);
             player.steamID = new CSteamID(steamID);
             Traverse.Create(player).Field("isLocalPlayer").SetValue(false);
             player.GetType().GetTypeInfo().GetDeclaredMethod("InitializeComponents").Invoke(player, new object[] { });
             player.playerNameTextMesh.text = player.transform.name = characterSettings.Name;
             
-            player.currentModel = Object.Instantiate(player.currentModel, player.Animator.transform);
+            player.currentModel = Object.Instantiate(CharacterManager.SO_Characters[modelIndex].modelPrefab, player.Animator.transform);
             player.currentModel.transform.localPosition = player.currentModel.transform.localEulerAngles = Vector3.zero;
+
+            if (player.currentModel != null && player.currentModel.ApplyOutfit(characterSettings.OutfitIndex))
+            {
+                if (!GameManager.QuickStartGame)
+                {
+                    Settings value = ComponentManager<Settings>.Value;
+                    if (value != null)
+                    {
+                        player.characterSettings.OutfitIndex = characterSettings.OutfitIndex;
+                        value.Save(value.Current);
+                    }
+                }
+            }
+
             player.leftHandParent.SetParent(player.currentModel.leftHandItemHolder);
             player.leftHandParent.localPosition = player.leftHandParent.localEulerAngles = Vector3.zero;
             player.leftHandParent.gameObject.SetActive(true);
@@ -45,23 +67,6 @@ namespace RaftMMO.Utilities
             player.rightHandParent.localPosition = player.rightHandParent.localEulerAngles = Vector3.zero;
             player.rightHandParent.gameObject.SetActive(true);
 
-            var hatParent = Traverse.Create(player).Field("hatParent").GetValue<Transform>();
-            var chestParent = Traverse.Create(player).Field("chestParent").GetValue<Transform>();
-            var lLegParent = Traverse.Create(player).Field("lLegParent").GetValue<Transform>();
-            var rLegParent = Traverse.Create(player).Field("rLegParent").GetValue<Transform>();
-
-            hatParent.SetParent(player.currentModel.headBone);
-            hatParent.localPosition = hatParent.localEulerAngles = Vector3.zero;
-            hatParent.gameObject.SetActive(true);
-            chestParent.SetParent(player.currentModel.skeletonBone);
-            chestParent.localPosition = chestParent.localEulerAngles = Vector3.zero;
-            chestParent.gameObject.SetActive(true);
-            lLegParent.SetParent(player.Animator.anim.GetBoneTransform(HumanBodyBones.LeftLowerLeg));
-            lLegParent.localPosition = lLegParent.localEulerAngles = Vector3.zero;
-            lLegParent.gameObject.SetActive(true);
-            rLegParent.SetParent(player.Animator.anim.GetBoneTransform(HumanBodyBones.RightLowerLeg));
-            rLegParent.localPosition = rLegParent.localEulerAngles = Vector3.zero;
-            rLegParent.gameObject.SetActive(true);
 
             player.CameraTransform.SetParent(player.currentModel.cameraHolder);
             player.CameraTransform.localPosition = player.CameraTransform.localEulerAngles = Vector3.zero;
