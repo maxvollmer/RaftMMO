@@ -28,11 +28,15 @@ namespace RaftMMO.Utilities
                 Name = name,
                 ModelIndex = modelIndex
             };
-
+            
+            if (steamID == network.LocalSteamID.m_SteamID)
+            {
+                steamID += 1;
+            }
            
             player.characterSettings = characterSettings;
 
-
+            
 
             Traverse.Create(player).Field("network").SetValue(network);
             player.steamID = new CSteamID(steamID);
