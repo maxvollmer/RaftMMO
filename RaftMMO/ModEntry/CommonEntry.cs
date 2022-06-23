@@ -43,6 +43,8 @@ namespace RaftMMO.ModEntry
             SettingsMenuInjector.Inject();
 
             RaftMMOLogger.LogAlways("RaftMMO has been loaded!");
+
+            var test = new RaftMMO.Salty.Test();
         }
 
         public static void OnModUnload()

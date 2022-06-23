@@ -207,6 +207,8 @@ namespace RaftMMO.MainMenu
 
         private static void MakeAbout(TabStuff tab, GameObject templates)
         {
+            var network = ComponentManager<Raft_Network>.Value;
+            CreateText(templates, tab.content, network.playerPrefab.name);
             CreateText(templates, tab.content, "RaftMMO is a mod by Max Vollmer.");
             CreateText(templates, tab.content, "It spawns buoys in the ocean, at which you can meet other rafts.");
             CreateSpacer(templates, tab.content, 12);

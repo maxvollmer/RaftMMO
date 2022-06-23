@@ -2,3 +2,10 @@
 /bin
 /obj
 .vs
+shared.props
+RaftMMO/Salty/Test.cs
+shared.props
+RaftMMO.csproj
+RaftMMO/MainMenu/SettingsMenuBuilder.cs
+RaftMMO/ModEntry/CommonEntry.cs
+*.cs

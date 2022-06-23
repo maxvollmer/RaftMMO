@@ -15,7 +15,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RaftMMO</RootNamespace>
     <AssemblyName>RaftMMO</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -66,6 +66,7 @@
     <Compile Include="RaftMMO\Network\Messages\SplitMessage.cs" />
     <Compile Include="RaftMMO\Network\RaftMMOJsonContractResolver.cs" />
     <Compile Include="RaftMMO\Network\SerializableData\Simple\HandShake.cs" />
+    <Compile Include="RaftMMO\Salty\Test.cs" />
     <Compile Include="RaftMMO\Utilities\GameObjectHelper.cs" />
     <Compile Include="RaftMMO\Utilities\I18NHelper.cs" />
     <Compile Include="RaftMMO\Utilities\ImageLoader.cs" />

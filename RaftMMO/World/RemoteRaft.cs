@@ -161,10 +161,10 @@ namespace RaftMMO.World
                     RaftMMOLogger.LogVerbose("RemoteRaft.RemoveRaftParts: Received null block");
                     continue;
                 }
-
-                if (blockCache.Remove(block, out GameObject blockObject))
+                var blockObject = blockCache.Single(x => x.Key == block);
+                if (blockCache.Remove(block))
                 {
-                    Object.Destroy(blockObject);
+                    Object.Destroy(blockObject.Value);
                 }
                 else
                 {
@@ -275,7 +275,8 @@ namespace RaftMMO.World
             if (!currentValidRemotePlayerSteamIDs.Contains(steamID))
                 return null;
 
-            if (!remotePlayers.ContainsKey(steamID))
+
+            if (!remotePlayers.ContainsKey(steamID) && Raft_Network.IsHost )
             {
                 remotePlayers.Add(steamID, FakePlayerCreator.Create(steamID, model, position));
                 SettingsManager.AddMetPlayer(steamID, model);
@@ -309,7 +310,8 @@ namespace RaftMMO.World
         public static void RemoveRemotePlayer(ulong steamID)
         {
             currentValidRemotePlayerSteamIDs.Remove(steamID);
-            if (remotePlayers.Remove(steamID, out Network_Player player))
+            var player = remotePlayers[steamID];
+            if (remotePlayers.Remove(steamID))
             {
                 player.gameObject.transform.SetParent(null);
                 Object.Destroy(player.gameObject);
