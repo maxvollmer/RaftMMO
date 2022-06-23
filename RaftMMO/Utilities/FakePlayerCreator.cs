@@ -45,7 +45,7 @@ namespace RaftMMO.Utilities
 
             if (player.currentModel != null && player.currentModel.ApplyOutfit(characterSettings.OutfitIndex))
             {
-                if (player.IsLocalPlayer && !GameManager.QuickStartGame)
+                if (!GameManager.QuickStartGame)
                 {
                     Settings value = ComponentManager<Settings>.Value;
                     if (value != null)
