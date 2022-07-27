@@ -356,8 +356,9 @@ namespace RaftMMO.MainMenu
 
         private static bool IsMeetingThisRaftRightNow(ulong steamID, string sessionID)
         {
-            return (Semih_Network.IsHost && RemoteSession.IsConnectedPlayer(new CSteamID(steamID)) && RemoteSession.ConnectedSessionID == sessionID)
-                   || (!Semih_Network.IsHost && SteamHelper.IsSameSteamID(ClientSession.ConnectedSteamID, steamID) && ClientSession.ConnectedSessionID == sessionID);
+        
+            return (Raft_Network.IsHost && RemoteSession.IsConnectedPlayer(new CSteamID(steamID)) && RemoteSession.ConnectedSessionID == sessionID)
+                   || (!Raft_Network.IsHost && SteamHelper.IsSameSteamID(ClientSession.ConnectedSteamID, steamID) && ClientSession.ConnectedSessionID == sessionID);
         }
 
         private static string CreateLastMetTimeString(ulong playerSteamID, long lastMet)

@@ -71,9 +71,9 @@ namespace RaftMMO.Network
         public static string GetSteamUserName(CSteamID steamID, bool isCharacterTag)
         {
             bool isHost = false;
-            if (Semih_Network.IsHost && RemoteSession.IsConnectedToPlayer)
+            if (Raft_Network.IsHost && RemoteSession.IsConnectedToPlayer)
                 isHost = steamID.m_SteamID == RemoteSession.ConnectedPlayer.m_SteamID;
-            else if (!Semih_Network.IsHost && ClientSession.IsHostConnectedToPlayer)
+            else if (!Raft_Network.IsHost && ClientSession.IsHostConnectedToPlayer)
                 isHost = steamID.m_SteamID == ClientSession.ConnectedSteamID;
 
             bool isFriend = SteamFriends.GetFriendRelationship(steamID) == EFriendRelationship.k_EFriendRelationshipFriend;

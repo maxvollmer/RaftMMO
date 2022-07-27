@@ -13,7 +13,7 @@ namespace RaftMMO.Network.Messages
         public CompleteTradeMessage(List<SerializableData.Item> offerItems, List<SerializableData.Item> remoteItems, ulong remoteTradePlayerSteamID)
             : base(MessageType.COMPLETE_TRADE, true)
         {
-            this.steamID = ComponentManager<Semih_Network>.Value.LocalSteamID.m_SteamID;
+            this.steamID = ComponentManager<Raft_Network>.Value.LocalSteamID.m_SteamID;
             this.offerItems = offerItems.ToArray();
             this.remoteItems = remoteItems.ToArray();
             this.remoteTradePlayerSteamID = remoteTradePlayerSteamID;
