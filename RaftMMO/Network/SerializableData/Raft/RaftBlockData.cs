@@ -126,7 +126,7 @@ namespace RaftMMO.Network.SerializableData
                 this.bitmaskValue = 0;
             }
 
-            this.colliders = block.GetComponentsInChildren<Collider>().Where(RaftCopier.IsColliderForSending).Select(collider => new RaftColliderData(collider)).ToArray();
+            this.colliders = block.GetComponentsInChildren<Collider>().Where(collider => RaftCopier.IsColliderForSending(block, collider)).Select(collider => new RaftColliderData(collider)).ToArray();
             this.plants = block.GetComponentsInChildren<Plant>().Select(plant => new RaftPlantData(plant)).ToArray();
         }
 

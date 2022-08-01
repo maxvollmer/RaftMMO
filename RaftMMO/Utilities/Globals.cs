@@ -4,7 +4,7 @@ namespace RaftMMO.Utilities
 {
     public class Globals
     {
-        public static int ModNetworkVersion { get; } = 17;
+        public static int ModNetworkVersion { get; } = 18;
 
         public static int ReliableMessageSizeLimit { get; } = 1000000;
 

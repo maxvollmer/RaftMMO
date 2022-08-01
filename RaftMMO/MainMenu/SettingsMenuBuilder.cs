@@ -87,7 +87,7 @@ namespace RaftMMO.MainMenu
             var tabGroup = optionMenuCopy.GetComponentInChildren<TabGroup>();
             Traverse.Create(tabGroup).Field("tabButtons").SetValue(tabGroup.GetComponentsInChildren<TabButton>());
             Traverse.Create(tabGroup).Field("selectedTabButton").SetValue(null);
-            tabGroup.SelectTab(0);
+            tabGroup.SelectTab(6);
 
             var tabContainer = optionMenuCopy.transform.FindChildRecursively("TabContainer").gameObject;
             var tabContainerTransform = tabContainer.transform as RectTransform;
@@ -207,8 +207,16 @@ namespace RaftMMO.MainMenu
 
         private static void MakeAbout(TabStuff tab, GameObject templates)
         {
-            CreateText(templates, tab.content, "RaftMMO is a mod by Max Vollmer.");
-            CreateText(templates, tab.content, "It spawns buoys in the ocean, at which you can meet other rafts.");
+            CreateText(templates, tab.content, "Hi, I am Max! I make RaftMMO.");
+            CreateSpacer(templates, tab.content, 12);
+            CreateText(templates, tab.content, "If you like my work, please consider supporting me on Patreon:");
+            CreateButton(templates, tab.content, "Patreon", () => Application.OpenURL("https://www.patreon.com/maxvollmer"));
+
+            CreateText(templates, tab.content, "Also check out my Discord:");
+            CreateButton(templates, tab.content, "Max Makes Mods", () => Application.OpenURL("https://discord.gg/uFGd2YR"));
+
+            CreateSpacer(templates, tab.content, 24);
+            CreateText(templates, tab.content, "This mod spawns buoys in the ocean, at which you can meet other rafts.");
             CreateSpacer(templates, tab.content, 12);
             CreateText(templates, tab.content, "Buoys can be located with the receiver, they appear as red dots on the display.");
             CreateSpacer(templates, tab.content, 12);
@@ -217,17 +225,12 @@ namespace RaftMMO.MainMenu
             CreateText(templates, tab.content, "Buoys always spawn away from islands. If you sail too far from the buoy, the other raft will not be able to follow you.");
 
             CreateSpacer(templates, tab.content, 24);
-
-            CreateText(templates, tab.content, "Visit the RaftMMO Discord:");
-            CreateButton(templates, tab.content, "RaftMMO Discord", () => Application.OpenURL("https://discord.gg/uFGd2YR"));
+            CreateText(templates, tab.content, "Visit the mod on RaftModding:");
+            CreateButton(templates, tab.content, "RaftModding", () => Application.OpenURL("https://www.raftmodding.com/mods/raftmmo"));
 
             CreateText(templates, tab.content, "Visit the mod on Nexus Mods:");
             CreateButton(templates, tab.content, "Nexus Mods", () => Application.OpenURL("https://www.nexusmods.com/raft/mods/5"));
 
-            CreateText(templates, tab.content, "Visit the mod on RaftModding:");
-            CreateButton(templates, tab.content, "RaftModding", () => Application.OpenURL("https://www.raftmodding.com/mods/raftmmo"));
-
-            CreateSpacer(templates, tab.content, 12);
             CreateText(templates, tab.content, "The mod is open source:");
             CreateButton(templates, tab.content, "Github", () => Application.OpenURL("https://github.com/maxvollmer/RaftMMO"));
 
@@ -236,11 +239,7 @@ namespace RaftMMO.MainMenu
             CreateButton(templates, tab.content, "Youtube", () => Application.OpenURL("https://www.youtube.com/channel/UCMLx0EEXSe5NiQ8fQgtN9PQ"));
 
             CreateSpacer(templates, tab.content, 12);
-            CreateText(templates, tab.content, "I make other mods as well. If you like my work, I have a Patreon:");
-            CreateButton(templates, tab.content, "Patreon", () => Application.OpenURL("https://www.patreon.com/maxvollmer"));
-
-            CreateSpacer(templates, tab.content, 24);
-            CreateText(templates, tab.content, "Other projects I made that people like:");
+            CreateText(templates, tab.content, "Other projects I make that people like:");
             CreateButton(templates, tab.content, "DeepWoods for SDV", () => Application.OpenURL("https://www.nexusmods.com/stardewvalley/mods/2571"));
 
             CreateSpacer(templates, tab.content, 12);

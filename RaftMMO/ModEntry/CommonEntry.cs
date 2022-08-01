@@ -68,6 +68,7 @@ namespace RaftMMO.ModEntry
             RaftDataManager.Clear();
             SteamHelper.CloseAll();
             LightSingularityPatch.Destroy();
+            ReceiverPatch.Destroy();
 
             RemoteRaftScreenshotTaker.Destroy();
 

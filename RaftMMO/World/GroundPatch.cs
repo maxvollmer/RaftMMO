@@ -1,6 +1,7 @@
 ﻿using FMODUnity;
 using HarmonyLib;
 using RaftMMO.ModEntry;
+using RaftMMO.Utilities;
 using System.Reflection;
 using UnityEngine;
 
@@ -13,9 +14,12 @@ namespace RaftMMO.World
         {
             [HarmonyPrefix]
             [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Harmony Patch")]
-            static bool Prefix(PersonController __instance)
+            static bool Prefix(PersonController __instance, RaycastHit groundHit)
             {
                 if (!CommonEntry.CanWePlay)
+                    return true;
+
+                if (groundHit.collider == null)
                     return true;
 
                 var player = Traverse.Create(__instance).Field("playerNetwork").GetValue<Network_Player>();
@@ -25,13 +29,10 @@ namespace RaftMMO.World
                     return false;
                 }
 
-                if (Physics.SphereCast(__instance.transform.position, 0.5f, Vector3.down, out RaycastHit hitInfo, 100f + BlockCreator.MaxHeight, LayerMasks.MASK_GroundMask, QueryTriggerInteraction.Ignore))
+                if (RemoteRaft.IsPartOfRaft(groundHit.transform.gameObject))
                 {
-                    if (RemoteRaft.IsPartOfRaft(hitInfo.transform.gameObject))
-                    {
-                        __instance.transform.SetParentSafe(RemoteRaft.Transform);
-                        return false;
-                    }
+                    __instance.transform.SetParentSafe(RemoteRaft.Transform);
+                    return false;
                 }
 
                 return true;

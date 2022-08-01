@@ -31,12 +31,15 @@ namespace RaftMMO.RaftCopyTools
             return new SerializableData.RaftData(blockData);
         }
 
-        public static bool IsColliderForSending(Collider collider)
+        public static bool IsColliderForSending(Block block, Collider collider)
         {
-            if (!collider.enabled || (collider.isTrigger && collider.tag != "Ladder"))
+            if (collider.isTrigger && collider.tag != "Ladder")
                 return false;
 
             if (!IsBlockForSending(collider.GetComponentInParent<Block>()))
+                return false;
+
+            if (!collider.enabled && !block.blockColliders.Contains(collider))
                 return false;
 
             if (collider is BoxCollider boxCollider)
