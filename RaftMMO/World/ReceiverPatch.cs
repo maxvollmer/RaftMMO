@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RaftMMO.ModEntry;
+using RaftMMO.Network;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -51,8 +52,23 @@ namespace RaftMMO.World
                     UpdateReceiverDot(reciever, buoyReceiverDots[i].GetValueSafe(reciever), buoyLocations[i].Vector2);
                 }
 
-                CreateReceiverDot(reciever, raftReceiverDots, Color.magenta);
-                UpdateReceiverDot(reciever, raftReceiverDots.GetValueSafe(reciever), new Vector2(RemoteRaft.Transform.position.x, RemoteRaft.Transform.position.z));
+                if (RemoteSession.IsConnectedToPlayer)
+                {
+                    CreateReceiverDot(reciever, raftReceiverDots, Color.magenta);
+                    UpdateReceiverDot(reciever, raftReceiverDots.GetValueSafe(reciever), new Vector2(RemoteRaft.Transform.position.x, RemoteRaft.Transform.position.z));
+                }
+                else
+                {
+                    foreach (var raftReceiverDot in raftReceiverDots.Values)
+                    {
+                        Object.Destroy(raftReceiverDot.gameObject);
+                    }
+                    raftReceiverDots.Clear();
+                }
+            }
+            else
+            {
+                Destroy();
             }
         }
 
@@ -109,7 +125,7 @@ namespace RaftMMO.World
             return 360f - num;
         }
 
-        public void Destroy()
+        public static void Destroy()
         {
             foreach (var buoyReceiverDot in buoyReceiverDots.Select(d => d.Values).SelectMany(d => d))
             {
