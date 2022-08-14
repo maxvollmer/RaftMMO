@@ -213,7 +213,7 @@ namespace RaftMMO.MainMenu
             CreateButton(templates, tab.content, "Patreon", () => Application.OpenURL("https://www.patreon.com/maxvollmer"));
 
             CreateText(templates, tab.content, "Also check out my Discord:");
-            CreateButton(templates, tab.content, "Max Makes Mods", () => Application.OpenURL("https://discord.gg/uFGd2YR"));
+            CreateButton(templates, tab.content, "Max Makes Mods", () => Application.OpenURL("https://discord.gg/32VbCSt"));
 
             CreateSpacer(templates, tab.content, 24);
             CreateText(templates, tab.content, "This mod spawns buoys in the ocean, at which you can meet other rafts.");

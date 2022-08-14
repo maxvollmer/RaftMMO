@@ -8,9 +8,9 @@
 
 	<!-- To compile and build the mod, set the following paths to the correct ones for your system. -->
 
-    <SteamAppsLocation>E:\Spiele\Steam\steamapps\</SteamAppsLocation>
-    <UnityModManagerLocation>D:\Work\UnityModManager\</UnityModManagerLocation>
-    <AssemblyCSharpLocation>D:\Work\Raft\Assembly-CSharp\</AssemblyCSharpLocation>
+    <SteamAppsLocation>E:\SteamLibrary\steamapps\</SteamAppsLocation>
+    <UnityModManagerLocation>D:\Work\Modding\UnityModManager\</UnityModManagerLocation>
+    <AssemblyCSharpLocation>D:\Work\Modding\Raft\Assembly-CSharp\</AssemblyCSharpLocation>
 
 	<!--
 		If you want Visual Studio to load the Assembly-CSharp as library instead of from a project,
