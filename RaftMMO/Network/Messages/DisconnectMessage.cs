@@ -9,5 +9,8 @@ namespace RaftMMO.Network.Messages
           : base(MessageType.DISCONNECT, true, overridehandshake)
         {
         }
+
+        // for serialization
+        public DisconnectMessage() { }
     }
 }

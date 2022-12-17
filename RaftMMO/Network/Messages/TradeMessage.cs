@@ -5,11 +5,11 @@ namespace RaftMMO.Network.Messages
     [System.Serializable()]
     public class TradeMessage : BaseMessage
     {
-        public readonly ulong steamID;
-        public readonly ulong remoteTradePlayerSteamID;
-        public readonly SerializableData.Item[] offerItems;
-        public readonly SerializableData.Item[] wishItems;
-        public readonly bool isAcceptingTrade;
+        public ulong steamID;
+        public ulong remoteTradePlayerSteamID;
+        public SerializableData.Item[] offerItems;
+        public SerializableData.Item[] wishItems;
+        public bool isAcceptingTrade;
 
         public TradeMessage(List<SerializableData.Item> offerItems, List<SerializableData.Item> wishItems, ulong remoteTradePlayerSteamID, bool isAcceptingTrade)
             : base(MessageType.TRADE, true)
@@ -20,5 +20,8 @@ namespace RaftMMO.Network.Messages
             this.remoteTradePlayerSteamID = remoteTradePlayerSteamID;
             this.isAcceptingTrade = isAcceptingTrade;
         }
+
+        // for serialization
+        public TradeMessage() { }
     }
 }

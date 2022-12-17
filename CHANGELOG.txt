@@ -1,3 +1,7 @@
+0.3.1-alpha
+* Fixed potential RCE vulnerability (see https://www.synacktiv.com/sites/default/files/2022-12/Raft_RCE.pdf)
+* THIS DOES NOT FIX THE RCE VULNERABILITY IN RAFT ITSELF, ONLY IN THE MOD'S OWN NETWORK LAYER!!!
+
 0.3.0-alpha
 * Fixed pink receiver dot appearing even if not actually connected to another session
 * Made compatible with Raft Final Chapter

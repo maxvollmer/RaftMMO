@@ -7,8 +7,8 @@ namespace RaftMMO.Network.Messages
     [System.Serializable()]
     public class RequestConnectionMessage : BaseMessage
     {
-        public readonly string mySessionID;
-        public readonly int myHandshake;
+        public string mySessionID;
+        public int myHandshake;
 
         public RequestConnectionMessage()
           : base(MessageType.REQUEST_CONNECTION, true)

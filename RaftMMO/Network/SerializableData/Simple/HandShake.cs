@@ -7,15 +7,18 @@ using System.Threading.Tasks;
 namespace RaftMMO.Network.SerializableData.Simple
 {
     [System.Serializable()]
-    public struct HandShake
+    public class HandShake
     {
-        public readonly int mine;
-        public readonly int theirs;
+        public int mine;
+        public int theirs;
 
         public HandShake(int mine, int theirs)
         {
             this.mine = mine;
             this.theirs = theirs;
         }
+
+        //for serialization
+        public HandShake() { }
     }
 }

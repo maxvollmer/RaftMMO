@@ -4,7 +4,8 @@ namespace RaftMMO.Utilities
 {
     public class Globals
     {
-        public static int ModNetworkVersion { get; } = 18;
+        public static int ModNetworkVersion { get; } = 19;
+        public static int SteamNetworkChannel { get; } = 1338;
 
         public static int ReliableMessageSizeLimit { get; } = 1000000;
 
@@ -39,7 +40,7 @@ namespace RaftMMO.Utilities
         /// TODO TEMP TODO TEMP
 
         public static bool TEMPDEBUGConnectToLocalPlayer { get; } = false;
-        public static bool TEMPDEBUGStaticBuoyPosition { get; } = false;
+        public static bool TEMPDEBUGStaticBuoyPosition { get; } = true;
 
         /// TODO TEMP TODO TEMP
         /// TODO TEMP TODO TEMP

@@ -5,9 +5,9 @@ namespace RaftMMO.Network.Messages
     [System.Serializable()]
     public class PositionUpdateMessage : BaseMessage, IPositionUpdateMessage
     {
-        public readonly SerializableData.Vector position;
-        public readonly SerializableData.Angles rotation;
-        public readonly float remotePosRotation;
+        public SerializableData.Vector position;
+        public SerializableData.Angles rotation;
+        public float remotePosRotation;
 
         public SerializableData.Vector Position { get { return position; } }
         public SerializableData.Angles Rotation { get { return rotation; } }
@@ -20,5 +20,8 @@ namespace RaftMMO.Network.Messages
             this.rotation = new SerializableData.Angles(rotation);
             this.remotePosRotation = remotePosRotation;
         }
+
+        // for serialization
+        public PositionUpdateMessage() { }
     }
 }

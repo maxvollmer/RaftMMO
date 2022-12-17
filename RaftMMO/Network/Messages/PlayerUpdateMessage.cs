@@ -6,13 +6,13 @@ namespace RaftMMO.Network.Messages
     [System.Serializable()]
     public class PlayerUpdateMessage : BaseMessage
     {
-        public readonly ulong steamID;
-        public readonly byte model;
+        public ulong steamID;
+        public byte model;
         public SerializableData.Vector position;
         public byte rotationX;
         public byte rotationY;
-        public readonly RaftAttachStatus raftAttachStatus;
-        public readonly SerializableData.MessagePlayerUpdateWrapper playerUpdate;
+        public RaftAttachStatus raftAttachStatus;
+        public SerializableData.MessagePlayerUpdateClone playerUpdate;
 
         public float RotationX { get { return 360f * (rotationX / 255f); } }
         public float RotationY { get { return 360f * (rotationY / 255f); } }
@@ -28,7 +28,10 @@ namespace RaftMMO.Network.Messages
             this.rotationX = (byte)(255 * (player.transform.rotation.eulerAngles.x / 360f));
             this.rotationY = (byte)(255 * (player.transform.rotation.eulerAngles.y / 360f));
             this.raftAttachStatus = raftAttachStatus;
-            this.playerUpdate = new SerializableData.MessagePlayerUpdateWrapper(global::Messages.Update, player, player);
+            this.playerUpdate = new SerializableData.MessagePlayerUpdateClone(global::Messages.Update, player, player);
         }
+
+        // for serialization
+        public PlayerUpdateMessage() { }
     }
 }

@@ -15,7 +15,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RaftMMO</RootNamespace>
     <AssemblyName>RaftMMO</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -98,7 +98,7 @@
     <Compile Include="RaftMMO\Network\SerializableData\Raft\RaftData.cs" />
     <Compile Include="RaftMMO\Network\SerializableData\Simple\Angles.cs" />
     <Compile Include="RaftMMO\Network\SerializableData\Simple\Item.cs" />
-    <Compile Include="RaftMMO\Network\SerializableData\MessagePlayerUpdateWrapper.cs" />
+    <Compile Include="RaftMMO\Network\SerializableData\MessagePlayerUpdateClone.cs" />
     <Compile Include="RaftMMO\Network\SerializableData\Simple\Vector.cs" />
     <Compile Include="RaftMMO\Network\SerializableData\Simple\Vector2D.cs" />
     <Compile Include="RaftMMO\Network\SteamHelper.cs" />

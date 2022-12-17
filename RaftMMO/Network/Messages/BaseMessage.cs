@@ -1,16 +1,29 @@
-﻿using RaftMMO.Network.SerializableData.Simple;
-using RaftMMO.Utilities;
+﻿using RaftMMO.Utilities;
 using System;
+using System.Xml.Serialization;
 
 namespace RaftMMO.Network.Messages
 {
-    [System.Serializable()]
+    [Serializable(),
+        XmlInclude(typeof(AcceptConnectionMessage)),
+        XmlInclude(typeof(BuoysUpdateMessage)),
+        XmlInclude(typeof(CompleteTradeMessage)),
+        XmlInclude(typeof(ConnectedMessage)),
+        XmlInclude(typeof(DisconnectMessage)),
+        XmlInclude(typeof(FullRaftMessage)),
+        XmlInclude(typeof(PlayerListMessage)),
+        XmlInclude(typeof(PlayerUpdateMessage)),
+        XmlInclude(typeof(PositionUpdateMessage)),
+        XmlInclude(typeof(RaftDeltaMessage)),
+        XmlInclude(typeof(RequestConnectionMessage)),
+        XmlInclude(typeof(SplitMessage)),
+        XmlInclude(typeof(TradeMessage))]
     public class BaseMessage
     {
-        public readonly MessageType type;
-        public readonly int gameVersion;
-        public readonly int modVersion;
-        public readonly int handshake;
+        public MessageType type;
+        public int gameVersion;
+        public int modVersion;
+        public int handshake;
 
         [System.NonSerialized()]
         public readonly bool reliable;
@@ -23,5 +36,8 @@ namespace RaftMMO.Network.Messages
             this.modVersion = Globals.ModNetworkVersion;
             this.handshake = overridehandshake.HasValue ? overridehandshake.Value : RemoteSession.RemoteHandShake;
         }
+
+        // for serialization
+        public BaseMessage() { }
     }
 }

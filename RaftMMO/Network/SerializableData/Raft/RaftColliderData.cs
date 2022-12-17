@@ -20,14 +20,14 @@ namespace RaftMMO.Network.SerializableData
             MESH
         }
 
-        public readonly ColliderType type = ColliderType.INVALID;
-        public readonly Vector position = new Vector(Vector3.zero);
-        public readonly Vector rotation = new Vector(Vector3.zero);
-        public readonly Vector scale = new Vector(Vector3.zero);
-        public readonly Vector center = new Vector(Vector3.zero);
-        public readonly Vector size = new Vector(Vector3.zero);
-        public readonly int bitMaskValue = 0;
-        public readonly bool isLadder = false;
+        public ColliderType type = ColliderType.INVALID;
+        public Vector position = new Vector(Vector3.zero);
+        public Vector rotation = new Vector(Vector3.zero);
+        public Vector scale = new Vector(Vector3.zero);
+        public Vector center = new Vector(Vector3.zero);
+        public Vector size = new Vector(Vector3.zero);
+        public int bitMaskValue = 0;
+        public bool isLadder = false;
 
         [NonSerialized()]
         private int hash = 0;
@@ -85,6 +85,9 @@ namespace RaftMMO.Network.SerializableData
                 }
             }
         }
+
+        // for serialization
+        public RaftColliderData() { }
 
         private Vector3 ClampAndNormalizeScale(Vector3 scale)
         {

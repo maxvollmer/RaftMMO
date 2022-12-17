@@ -6,9 +6,9 @@ namespace RaftMMO.Network.Messages
     [System.Serializable()]
     public class AcceptConnectionMessage : BaseMessage
     {
-        public readonly string mySessionID;
-        public readonly int yourHandshake;
-        public readonly int myHandshake;
+        public string mySessionID;
+        public int yourHandshake;
+        public int myHandshake;
 
         public AcceptConnectionMessage(int handshake)
           : base(MessageType.ACCEPT_CONNECTION, true)
@@ -18,5 +18,8 @@ namespace RaftMMO.Network.Messages
             myHandshake = RemoteSession.LocalHandShake;
             RaftMMOLogger.LogVerbose("AcceptConnectionMessage(" + yourHandshake + "," + myHandshake + ")");
         }
+
+        // for serialization
+        public AcceptConnectionMessage() { }
     }
 }

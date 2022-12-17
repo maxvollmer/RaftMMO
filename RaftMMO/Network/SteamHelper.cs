@@ -13,7 +13,7 @@ namespace RaftMMO.Network
         {
             foreach (var steamID in connectedSteamIDs)
             {
-                SteamNetworking.CloseP2PChannelWithUser(steamID, 1337);
+                SteamNetworking.CloseP2PChannelWithUser(steamID, Globals.SteamNetworkChannel);
             }
             connectedSteamIDs.Clear();
         }
@@ -27,7 +27,7 @@ namespace RaftMMO.Network
         public static bool Close(CSteamID steamID)
         {
             connectedSteamIDs.Remove(steamID);
-            return SteamNetworking.CloseP2PChannelWithUser(steamID, 1337);
+            return SteamNetworking.CloseP2PChannelWithUser(steamID, Globals.SteamNetworkChannel);
         }
 
         public static void OpenSteamChat(CSteamID steamID)

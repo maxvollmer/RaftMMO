@@ -7,10 +7,10 @@ namespace RaftMMO.Network.SerializableData
     [Serializable()]
     public class RaftPlantData
     {
-        public readonly Vector position = new Vector(Vector3.zero);
-        public readonly Vector rotation = new Vector(Vector3.zero);
-        public readonly Vector scale = new Vector(Vector3.zero);
-        public readonly int plantUniqueItemIndex = 0;
+        public Vector position = new Vector(Vector3.zero);
+        public Vector rotation = new Vector(Vector3.zero);
+        public Vector scale = new Vector(Vector3.zero);
+        public int plantUniqueItemIndex = 0;
 
         [NonSerialized()]
         private int hash = 0;
@@ -25,6 +25,9 @@ namespace RaftMMO.Network.SerializableData
             scale = new Vector(ClampAndNormalizeScale(plant.transform.lossyScale));
             plantUniqueItemIndex = plant.item.UniqueIndex;
         }
+
+        // for serialization
+        public RaftPlantData() { }
 
         private Vector3 ClampAndNormalizeScale(Vector3 scale)
         {

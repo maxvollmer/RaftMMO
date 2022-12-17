@@ -3,11 +3,14 @@
     [System.Serializable()]
     public class RaftData
     {
-        public readonly RaftBlockData[] blockData;
+        public RaftBlockData[] blockData;
 
         public RaftData(RaftBlockData[] blockData)
         {
             this.blockData = blockData;
         }
+
+        // for serialization
+        public RaftData() { }
     }
 }

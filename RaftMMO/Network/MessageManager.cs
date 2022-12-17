@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml.Serialization;
 
 namespace RaftMMO.Network
 {
@@ -18,59 +18,17 @@ namespace RaftMMO.Network
     {
         private static void SerializeMessage(BaseMessage message, Stream stream)
         {
-            using (GZipStream gzip = new GZipStream(stream, CompressionMode.Compress, true))
-            {
-                BinaryFormatter binaryFormatter = new BinaryFormatter();
-                binaryFormatter.Serialize(gzip, message);
-            }
-        }
-
-        private static BaseMessage DeserializeMessage(Stream stream)
-        {
             try
             {
-                using (GZipStream gzip = new GZipStream(stream, CompressionMode.Decompress, true))
+                using (GZipStream gzip = new GZipStream(stream, CompressionMode.Compress, true))
                 {
-                    BinaryFormatter formatter = new BinaryFormatter
-                    {
-                        Binder = new RaftMMODeserializationBinder()
-                    };
-                    object message = formatter.Deserialize(gzip);
-                    if (message is BaseMessage raftMMOMessage)
-                    {
-                        return raftMMOMessage;
-                    }
-                    else if (message == null)
-                    {
-                        RaftMMOLogger.LogWarning("DeserializeMessage got null message");
-                        return null;
-                    }
-                    else
-                    {
-                        RaftMMOLogger.LogWarning("DeserializeMessage got invalid message type: " + message.GetType());
-                        return null;
+                    XmlSerializer serializer = new XmlSerializer(typeof(BaseMessage));
+                    serializer.Serialize(gzip, message);
                     }
                 }
-            }
             catch (Exception e)
             {
-                RaftMMOLogger.LogError("DeserializeMessage caught exception: " + e);
-                return null;
-            }
-        }
-
-
-        /*
-        private static readonly string MESSAGE_DELIMITER = "LOL";
-
-        private static void SerializeMessage(BaseMessage message, Stream stream)
-        {
-            using (GZipStream gzip = new GZipStream(stream, CompressionMode.Compress, true))
-            {
-                string typename = message.GetType().FullName;
-                string json = JsonConvert.SerializeObject(message, Formatting.None, new JsonSerializerSettings { ContractResolver = new RaftMMOJsonContractResolver() });
-                byte[] bytes = Encoding.UTF8.GetBytes(typename + MESSAGE_DELIMITER + json);
-                gzip.Write(bytes, 0, bytes.Length);
+                RaftMMOLogger.LogError("SerializeMessage caught exception: " + e);
             }
         }
 
@@ -80,18 +38,8 @@ namespace RaftMMO.Network
             {
                 using (GZipStream gzip = new GZipStream(stream, CompressionMode.Decompress, true))
                 {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        gzip.CopyTo(ms);
-                        string message = Encoding.UTF8.GetString(ms.ToArray());
-                        int delimindex = message.IndexOf(MESSAGE_DELIMITER);
-                        if (delimindex > 0)
-                        {
-                            string typename = message.Substring(0, delimindex);
-                            string json = message.Substring(delimindex + MESSAGE_DELIMITER.Length);
-                            return JsonConvert.DeserializeObject(json, RaftMMODeserializationBinder.GetType(typename)) as BaseMessage;
-                        }
-                    }
+                    XmlSerializer serializer = new XmlSerializer(typeof(BaseMessage));
+                    return serializer.Deserialize(gzip) as BaseMessage;
                 }
             }
             catch (Exception e)
@@ -100,7 +48,6 @@ namespace RaftMMO.Network
             }
             return null;
         }
-        */
 
 
         public static void SendConnectedMessage(CSteamID steamID)
@@ -127,17 +74,6 @@ namespace RaftMMO.Network
             SerializeMessage(message, stream);
             byte[] array = stream.ToArray();
 
-            if (SettingsManager.Settings.LogVerbose)
-            {
-                MemoryStream stream2 = new MemoryStream();
-                BinaryFormatter binaryFormatter = new BinaryFormatter();
-                binaryFormatter.Serialize(stream2, message);
-                byte[] array2 = stream2.ToArray();
-                RaftMMOLogger.LogVerbose("Compression for " + message.type + ": "
-                    + array2.Length + " => " + array.Length
-                    + " (" + ((int)(array.Length * 100.0 / array2.Length)) + "%)");
-            }
-
             bool result = true;
 
             if (message.reliable && array.Length > Globals.ReliableMessageSizeLimit)
@@ -162,7 +98,7 @@ namespace RaftMMO.Network
                 steamID,
                 array, (uint)array.Length,
                 message.reliable ? EP2PSend.k_EP2PSendReliable : EP2PSend.k_EP2PSendUnreliableNoDelay,
-                1337);
+                Globals.SteamNetworkChannel);
             }
 
             Network_Player localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
@@ -356,11 +292,11 @@ namespace RaftMMO.Network
 
             uint countofmessages = 0;
             uint messagereadsuccesscount = 0;
-            while (SteamNetworking.IsP2PPacketAvailable(out uint msgSize, 1337))
+            while (SteamNetworking.IsP2PPacketAvailable(out uint msgSize, Globals.SteamNetworkChannel))
             {
                 countofmessages++;
                 byte[] array = new byte[msgSize];
-                if (SteamNetworking.ReadP2PPacket(array, msgSize, out _, out CSteamID remoteSteamID, 1337))
+                if (SteamNetworking.ReadP2PPacket(array, msgSize, out _, out CSteamID remoteSteamID, Globals.SteamNetworkChannel))
                 {
                     var message = DeserializeMessage(new MemoryStream(array));
 

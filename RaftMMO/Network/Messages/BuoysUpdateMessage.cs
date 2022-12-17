@@ -9,12 +9,13 @@ namespace RaftMMO.Network.Messages
     [System.Serializable()]
     public class BuoysUpdateMessage : BaseMessage
     {
-        private readonly SerializableData.Vector2D[] buoyLocations;
-        private readonly SerializableData.Vector currentRaftMeetingPoint;
-        private readonly float currentRaftMeetingPointDistance;
+        private SerializableData.Vector2D[] buoyLocations;
+        private SerializableData.Vector currentRaftMeetingPoint;
+        private float currentRaftMeetingPointDistance;
         public IEnumerable<Vector2> BuoyLocations { get { return buoyLocations.Select(l => l.Vector2); } }
         public Vector3 CurrentRaftMeetingPoint { get { return currentRaftMeetingPoint.Vector3; } }
         public float CurrentRaftMeetingPointDistance { get { return currentRaftMeetingPointDistance; } }
+
         public BuoysUpdateMessage()
             : base(MessageType.BUOYS, false)
         {

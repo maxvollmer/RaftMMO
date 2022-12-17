@@ -4,10 +4,10 @@ namespace RaftMMO.Network.Messages
     [System.Serializable()]
     public class SplitMessage : BaseMessage
     {
-        public readonly int id;
-        public readonly int index;
-        public readonly int totalnumber;
-        public readonly byte[] data;
+        public int id;
+        public int index;
+        public int totalnumber;
+        public byte[] data;
 
         public SplitMessage(int id, int index, int totalnumber, byte[] data)
             : base(MessageType.SPLIT_MESSAGE, false)
@@ -17,5 +17,8 @@ namespace RaftMMO.Network.Messages
             this.totalnumber = totalnumber;
             this.data = data;
         }
+
+        // for serialization
+        public SplitMessage() { }
     }
 }

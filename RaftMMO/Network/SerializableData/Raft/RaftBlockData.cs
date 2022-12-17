@@ -13,29 +13,29 @@ namespace RaftMMO.Network.SerializableData
     [Serializable()]
     public class RaftBlockData
     {
-        public readonly int itemIndex = 0;
-        public readonly int dpsType = 0;
+        public int itemIndex = 0;
+        public int dpsType = 0;
 
         // Basic values
-        public readonly Vector position = new Vector(Vector3.zero);
-        public readonly Vector rotation = new Vector(Vector3.zero);
-        public readonly TileBitmaskType bitmaskType;
-        public readonly int bitmaskValue = 0;
-        public readonly RaftColliderData[] colliders = new RaftColliderData[0];
-        public readonly RaftPlantData[] plants = new RaftPlantData[0];
+        public Vector position = new Vector(Vector3.zero);
+        public Vector rotation = new Vector(Vector3.zero);
+        public TileBitmaskType bitmaskType;
+        public int bitmaskValue = 0;
+        public RaftColliderData[] colliders = new RaftColliderData[0];
+        public RaftPlantData[] plants = new RaftPlantData[0];
 
         // Colors for side A
-        public readonly float colorA_r = 0f;
-        public readonly float colorA_g = 0f;
-        public readonly float colorA_b = 0f;
-        public readonly float colorA_a = 0f;
-        public readonly float patternColorA_r = 0f;
-        public readonly float patternColorA_g = 0f;
-        public readonly float patternColorA_b = 0f;
-        public readonly float patternColorA_a = 0f;
-        public readonly uint patternIndexA = 0;
-        public readonly bool isMaskedA = false;
-        public readonly bool isMaskFlippedA = false;
+        public float colorA_r = 0f;
+        public float colorA_g = 0f;
+        public float colorA_b = 0f;
+        public float colorA_a = 0f;
+        public float patternColorA_r = 0f;
+        public float patternColorA_g = 0f;
+        public float patternColorA_b = 0f;
+        public float patternColorA_a = 0f;
+        public uint patternIndexA = 0;
+        public bool isMaskedA = false;
+        public bool isMaskFlippedA = false;
 
         public bool HasColorA()
         {
@@ -50,21 +50,21 @@ namespace RaftMMO.Network.SerializableData
         }
 
         // Colors for side B
-        public readonly float colorB_r = 0f;
-        public readonly float colorB_g = 0f;
-        public readonly float colorB_b = 0f;
-        public readonly float colorB_a = 0f;
-        public readonly float patternColorB_r = 0f;
-        public readonly float patternColorB_g = 0f;
-        public readonly float patternColorB_b = 0f;
-        public readonly float patternColorB_a = 0f;
-        public readonly uint patternIndexB = 0;
-        public readonly bool isMaskedB = false;
-        public readonly bool isMaskFlippedB = false;
+        public float colorB_r = 0f;
+        public float colorB_g = 0f;
+        public float colorB_b = 0f;
+        public float colorB_a = 0f;
+        public float patternColorB_r = 0f;
+        public float patternColorB_g = 0f;
+        public float patternColorB_b = 0f;
+        public float patternColorB_a = 0f;
+        public uint patternIndexB = 0;
+        public bool isMaskedB = false;
+        public bool isMaskFlippedB = false;
 
         // Paint settings
-        public readonly int paintSide = 0;
-        public readonly int decoPaintSelect = 0;
+        public int paintSide = 0;
+        public int decoPaintSelect = 0;
 
         [NonSerialized()]
         private int hash = 0;
@@ -129,6 +129,9 @@ namespace RaftMMO.Network.SerializableData
             this.colliders = block.GetComponentsInChildren<Collider>().Where(collider => RaftCopier.IsColliderForSending(block, collider)).Select(collider => new RaftColliderData(collider)).ToArray();
             this.plants = block.GetComponentsInChildren<Plant>().Select(plant => new RaftPlantData(plant)).ToArray();
         }
+
+        // for serialization
+        public RaftBlockData() { }
 
         public override bool Equals(object obj)
         {

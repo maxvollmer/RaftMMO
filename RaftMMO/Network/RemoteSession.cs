@@ -525,8 +525,8 @@ namespace RaftMMO.Network
             if (player == null)
                 return;
 
-            player.PersonController.SetNetworkProperties(message.playerUpdate);
-            player.Animator.SetNetworkProperties(message.playerUpdate);
+            player.PersonController.SetNetworkProperties(message.playerUpdate.GetMessagePlayerUpdate(player, player));
+            player.Animator.SetNetworkProperties(message.playerUpdate.GetMessagePlayerUpdate(player, player));
 
             GameObject relativePositionFaker = new GameObject();
             relativePositionFaker.transform.position = translatedPos;
