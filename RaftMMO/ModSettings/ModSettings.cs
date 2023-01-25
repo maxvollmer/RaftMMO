@@ -1,4 +1,4 @@
-﻿using RaftMMO.Utilities;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,6 +15,8 @@ namespace RaftMMO.ModSettings
             public bool LogVerbose = false;
             public bool OnlyMeetSteamFriends = false;
             public bool EnableBuoySmoke = true;
+            public int GlobalMeetCoolDown = 1 * 60 * 1000;
+            public int IndividualMeetCoolDown = 15 * 60 * 1000;
         }
 
         public SerializableModSettings Serialize()
@@ -26,6 +28,8 @@ namespace RaftMMO.ModSettings
             serialized.LogVerbose = LogVerbose;
             serialized.OnlyMeetSteamFriends = OnlyMeetSteamFriends;
             serialized.EnableBuoySmoke = EnableBuoySmoke;
+            serialized.GlobalMeetCoolDown = GlobalMeetCoolDown;
+            serialized.IndividualMeetCoolDown = IndividualMeetCoolDown;
             return serialized;
         }
 
@@ -45,6 +49,8 @@ namespace RaftMMO.ModSettings
             LogVerbose = serialized.LogVerbose;
             OnlyMeetSteamFriends = serialized.OnlyMeetSteamFriends;
             EnableBuoySmoke = serialized.EnableBuoySmoke;
+            GlobalMeetCoolDown = serialized.GlobalMeetCoolDown;
+            IndividualMeetCoolDown = serialized.IndividualMeetCoolDown;
         }
 
         public Dictionary<string, RaftEntry> MetRafts = new Dictionary<string, RaftEntry>();
@@ -56,5 +62,8 @@ namespace RaftMMO.ModSettings
 
         public bool OnlyMeetSteamFriends = false;
         public bool EnableBuoySmoke = true;
+
+        public int GlobalMeetCoolDown = 1 * 60 * 1000;
+        public int IndividualMeetCoolDown = 15 * 60 * 1000;
     }
 }

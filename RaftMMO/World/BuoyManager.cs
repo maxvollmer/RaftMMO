@@ -1,9 +1,13 @@
-﻿using HarmonyLib;
+﻿using FMOD;
+using HarmonyLib;
 using RaftMMO.ModEntry;
 using RaftMMO.ModSettings;
+using RaftMMO.Network;
 using RaftMMO.Utilities;
+using Steamworks;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,19 +22,22 @@ namespace RaftMMO.World
         private static float BuoyAmplitude { get; } = 0.1f;
         private static float BuoyFrequency { get; } = 0.15f;
 
-        private static int MaxBuoySpawnTries = 8;
 
-        private static int MaxBuoyCount { get; } = 5;
-        private static int MaxBuoyDistance { get; } = 2500;
-        private static int MaxSpawnBuoyDistance { get; } = 2500;
-        private static int MinSpawnBuoyDistance { get; } = 500;
-        public static int BuoyCollisionOverlapRadius { get; } = 500;
+        private static float BUOY_SINK_SPEED { get; } = 0.5f;       // sinking speed of a sinking buoy in meters/second
+        private static float BUOY_SINK_DISTANCE { get; } = -50;     // meters under sea level when a sinking buoy gets destroyed
 
-        public static float RaftMeetingPointDisconnectDistance { get; } = 550f;
-        public static float RaftMeetingPointFavoriteConnectDistance { get; } = 450f;
-        public static float RaftMeetingPointAllConnectDistance { get; } = 350f;
+
+        // distances to buoy (meeting point)
+        public static float RaftMeetingPointDisconnectDistance { get; } = 400f;
+        public static float RaftMeetingPointConnectDistance { get; } = 350f;
         public static float RaftMeetingPointPushAwayDistance { get; } = 250f;
         public static float RaftMeetingPointActiveConnectDistance { get; } = 100f;
+
+        private static int BuoySpawnDistance { get; } = 300;
+
+
+        // distances to remote raft
+        public static float RemoteRaftVisibleDistance { get; } = 500f;
 
 
         private class BuoyLocation
@@ -46,11 +53,14 @@ namespace RaftMMO.World
 
             public void Destroy()
             {
-                foreach (var recieverDot in RecieverDots.Values)
+                foreach (var recieverDot in RecieverDots.Values.Where(d => d?.gameObject != null))
                 {
                     Object.Destroy(recieverDot.gameObject);
                 }
-                Object.Destroy(buoy);
+                if (buoy != null)
+                {
+                    Object.Destroy(buoy);
+                }
                 RecieverDots.Clear();
                 Location = Vector2.zero;
                 buoy = null;
@@ -58,12 +68,22 @@ namespace RaftMMO.World
         }
 
         private static List<BuoyLocation> buoyLocations = new List<BuoyLocation>();
+        private static List<BuoyLocation> sinkingBuoyLocations = new List<BuoyLocation>();
+        private static bool wasConnected = false;
 
         public static IEnumerable<SerializableData.Vector2D> BuoyLocations
         {
             get
             {
                 return buoyLocations.Select(b => new SerializableData.Vector2D(b.Location));
+            }
+        }
+
+        public static IEnumerable<SerializableData.Vector2D> SinkingBuoyLocations
+        {
+            get
+            {
+                return sinkingBuoyLocations.Select(b => new SerializableData.Vector2D(b.Location));
             }
         }
 
@@ -74,62 +94,73 @@ namespace RaftMMO.World
 
             if (Raft_Network.IsHost)
             {
-                var raft = ComponentManager<Raft>.Value;
-                Vector2 raft2DPos = new Vector2(raft.transform.position.x, raft.transform.position.z);
-
-                buoyLocations.Where(b => !IsBuoyNotTooFarAway(b)).ToList().ForEach(b => b.Destroy());
-                buoyLocations = buoyLocations.Where(IsBuoyNotTooFarAway).ToList();
-
-                int count = 0;
-                if (buoyLocations.Count < MaxBuoyCount)
+                if (RemoteSession.IsConnectedToPlayer)
                 {
-                    while (buoyLocations.Count < MaxBuoyCount)
-                    {
-                        if (GetRandomBuoyLocation(out Vector2 buoyLocation, count))
-                        {
-                            buoyLocations.Add(new BuoyLocation(buoyLocation));
-                            count++;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                if (buoyLocations.Count > 0)
-                {
-                    float smallestDistance = float.MaxValue;
-                    foreach (var buoyLocation in buoyLocations)
-                    {
-                        float distance = (buoyLocation.Location - raft2DPos).magnitude;
-                        if (distance <= smallestDistance)
-                        {
-                            smallestDistance = distance;
-                            Globals.CurrentRaftMeetingPoint = new Vector3(buoyLocation.Location.x, 0f, buoyLocation.Location.y);
-                        }
-                    }
-                    Globals.CurrentRaftMeetingPointDistance = smallestDistance;
+                    wasConnected = true;
                 }
                 else
                 {
-                    Globals.CurrentRaftMeetingPoint = new Vector3(9999999999999f, -9999999999999f, 9999999999999f);
-                    Globals.CurrentRaftMeetingPointDistance = 9999999999999f;
+                    if (wasConnected)
+                    {
+                        sinkingBuoyLocations.AddRange(buoyLocations);
+                        buoyLocations.Clear();
+                        wasConnected = false;
+                    }
+
+                    if (GetRandomBuoyLocation(out Vector2 buoyLocation, 0))
+                    {
+                        if (buoyLocations.Count == 0)
+                        {
+                            buoyLocations.Add(new BuoyLocation(buoyLocation));
+                        }
+                        else
+                        {
+                            buoyLocations[0].Location = buoyLocation;
+                        }
+
+                        var raft = ComponentManager<Raft>.Value;
+                        Vector2 raft2DPos = new Vector2(raft.transform.position.x, raft.transform.position.z);
+
+                        Globals.CurrentRaftMeetingPointDistance = (buoyLocation - raft2DPos).magnitude;
+                        Globals.CurrentRaftMeetingPoint = new Vector3(buoyLocation.x, 0f, buoyLocation.y);
+
+                        RaftMMOLogger.LogVerbose($"Globals.CurrentRaftMeetingPointDistance: {Globals.CurrentRaftMeetingPointDistance}");
+                    }
+                    else
+                    {
+                        Globals.CurrentRaftMeetingPoint = new Vector3(9999999999999f, -9999999999999f, 9999999999999f);
+                        Globals.CurrentRaftMeetingPointDistance = 9999999999999f;
+                    }
                 }
             }
 
             UpdateBuoys();
         }
 
-        private static bool IsBuoyNotTooFarAway(BuoyLocation buoyLocation)
+        private static void UpdateBuoyLocationsList(List<BuoyLocation> oldBuoyLocations, IEnumerable<Vector2> newBuoyLocations)
         {
-            var raft = ComponentManager<Raft>.Value;
-            Vector2 raft2DPos = new Vector2(raft.transform.position.x, raft.transform.position.z);
-            float distance = (buoyLocation.Location - raft2DPos).magnitude;
-            return distance <= MaxBuoyDistance;
+            var index = 0;
+            foreach (var newBuoyLocation in newBuoyLocations)
+            {
+                if (oldBuoyLocations.Count < index)
+                {
+                    oldBuoyLocations[index].Location = newBuoyLocation;
+                }
+                else
+                {
+                    oldBuoyLocations.Add(new BuoyLocation(newBuoyLocation));
+                }
+                index++;
+            }
+
+            while (index < oldBuoyLocations.Count)
+            {
+                oldBuoyLocations[index].Destroy();
+                oldBuoyLocations.RemoveAt(index);
+            }
         }
 
-        public static void ReceiveBuyLocationsFromHost(IEnumerable<Vector2> buoyLocations)
+        public static void ReceiveBuyLocationsFromHost(IEnumerable<Vector2> newBuoyLocations, IEnumerable<Vector2> newSinkingBuoyLocations)
         {
             if (!CommonEntry.CanWePlay)
                 return;
@@ -137,35 +168,34 @@ namespace RaftMMO.World
             if (Raft_Network.IsHost)
                 return;
 
-            var index = 0;
-            foreach (var buoyLocation in buoyLocations)
-            {
-                if (BuoyManager.buoyLocations.Count < index)
-                {
-                    BuoyManager.buoyLocations[index].Location = buoyLocation;
-                }
-                else
-                {
-                    BuoyManager.buoyLocations.Add(new BuoyLocation(buoyLocation));
-                }
-                index++;
-            }
-
-            while (index < BuoyManager.buoyLocations.Count)
-            {
-                BuoyManager.buoyLocations[index].Destroy();
-                BuoyManager.buoyLocations.RemoveAt(index);
-            }
+            UpdateBuoyLocationsList(buoyLocations, newBuoyLocations);
+            UpdateBuoyLocationsList(sinkingBuoyLocations, newSinkingBuoyLocations);
         }
 
         public static bool IsCloseEnoughToConnect()
         {
-            return buoyLocations.Count > 0 && Globals.CurrentRaftMeetingPointDistance < RaftMeetingPointFavoriteConnectDistance;
+            return buoyLocations.Count > 0 && Globals.CurrentRaftMeetingPointDistance < RaftMeetingPointConnectDistance;
         }
 
-        public static bool IsCloseEnoughToConnectToAll()
+        public static bool IsCloseEnoughToBeVisible()
         {
-            return buoyLocations.Count > 0 && Globals.CurrentRaftMeetingPointDistance < RaftMeetingPointAllConnectDistance;
+            if (buoyLocations.Count == 0)
+                return false;
+
+            var raft = ComponentManager<Raft>.Value;
+            var raft2DPos = new Vector2(raft.transform.position.x, raft.transform.position.z);
+            var remoteRaft2DPos = new Vector2(RemoteRaft.Transform.position.x, RemoteRaft.Transform.position.z);
+            float remoteRaftDistance = (remoteRaft2DPos - raft2DPos).magnitude;
+
+            RaftMMOLogger.LogVerbose($"IsCloseEnoughToBeVisible raft2DPos: {raft2DPos.x}, {raft2DPos.y}, remoteRaft2DPos: {remoteRaft2DPos.x}, {remoteRaft2DPos.y}, remoteRaftDistance: {remoteRaftDistance}");
+
+            if (raft2DPos.magnitude == 0 || remoteRaft2DPos.magnitude == 0 || remoteRaftDistance == 0)
+            {
+                RaftMMOLogger.LogDebug($"IsCloseEnoughToBeVisible got invalid positions, should be fixed next frame");
+                return false;
+            }
+
+            return remoteRaftDistance < RemoteRaftVisibleDistance;
         }
 
         public static bool IsFarEnoughToDisconnect()
@@ -191,6 +221,8 @@ namespace RaftMMO.World
 
         private static bool GetRandomBuoyLocation(out Vector2 buoyLocation, int count)
         {
+            RaftMMOLogger.LogVerbose("GetRandomBuoyLocation");
+
             var raft = ComponentManager<Raft>.Value;
 
             if (Globals.TEMPDEBUGStaticBuoyPosition)
@@ -216,40 +248,38 @@ namespace RaftMMO.World
                 return true;
             }
 
-            buoyLocation = Vector2.zero;
-            bool foundValidPosition = false;
-            int tries = 0;
-            while (!foundValidPosition && tries < MaxBuoySpawnTries)
-            {
-                Vector2 delta = Vector2.zero;
-                while (delta.sqrMagnitude == 0f)
-                    delta = new Vector2(RandomFloat(-1f, 1f), RandomFloat(-1f, 1f));
+            Vector2 velocity = new Vector2(raft.Velocity.x, raft.Velocity.z);
 
-                var distance = RandomFloat(MinSpawnBuoyDistance, MaxSpawnBuoyDistance);
-                delta = delta.normalized * distance;
-                buoyLocation = new Vector2(raft.transform.position.x + delta.x, raft.transform.position.z + delta.y);
-                foundValidPosition = IsValidBuoyLocation(buoyLocation);
-                tries++;
+            RaftMMOLogger.LogVerbose($"GetRandomBuoyLocation velocity: {velocity.x}, {velocity.y}");
+
+            if (velocity.sqrMagnitude <= Vector2.kEpsilonNormalSqrt)
+            {
+                buoyLocation = Vector2.zero;
+                return false;
             }
 
-            return foundValidPosition;
+            Vector2 delta = velocity.normalized;
+            if (delta.sqrMagnitude <= Vector2.kEpsilonNormalSqrt)
+            {
+                buoyLocation = Vector2.zero;
+                return false;
+            }
+
+            delta = delta.normalized * BuoySpawnDistance;
+
+            RaftMMOLogger.LogVerbose($"GetRandomBuoyLocation delta: {delta.x}, {delta.y}");
+
+            buoyLocation = new Vector2(raft.transform.position.x + delta.x, raft.transform.position.z + delta.y);
+            bool isValidLocation = ChunkAndBuoyCombiner.DoesBuoyFit(buoyLocation);
+
+            RaftMMOLogger.LogVerbose($"GetRandomBuoyLocation done: {buoyLocation.x}, {buoyLocation.y} ({isValidLocation})");
+
+            return isValidLocation;
         }
 
         private static float RandomFloat(float min, float max)
         {
             return (float)(Globals.RND.NextDouble() * (max - min) + min);
-        }
-
-        private static bool IsValidBuoyLocation(Vector2 position)
-        {
-            foreach (var buoyLocation in buoyLocations)
-            {
-                var distance = (buoyLocation.Location - position).magnitude;
-                if (distance < (BuoyCollisionOverlapRadius * 2))
-                    return false;
-            }
-
-            return ChunkAndBuoyCombiner.DoesBuoyFit(position);
         }
 
         public static void Destroy()
@@ -273,27 +303,45 @@ namespace RaftMMO.World
 
         private static Vector3 buoyForcePosition = Vector3.zero;
 
+        private static GameObject CreateBuoyObject()
+        {
+            GameObject buoy = Object.Instantiate(Globals.AssetBundle.LoadAsset<GameObject>("buoy"));
+            buoy.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+            buoy.SetActive(false);
+
+            // Not sure what the best approach here is:
+
+            // 1st option: Buoy solid for players but not rafts: No annoyance for raft, can climb on buoy which feels immersive, but buoy can push players when raft sails through it
+            // No code needed, that's the default
+
+            // 2nd option: Buoy solid for rafts and players: Most realism, but annoying when you get stuck on the buoy with your raft
+            // buoy.layer = LayerMask.NameToLayer("Obstruction");
+
+            // 3rd option: Buoy not solid: Buoy feels out of place/unreal, but is also the least disruptive/annoying
+            // going for this one for now
+            foreach (var collider in buoy.GetComponentsInChildren<Collider>())
+                Object.Destroy(collider);
+
+            return buoy;
+        }
+
         private static void UpdateBuoys()
         {
             buoyLocations.ForEach(buoyLocation =>
             {
                 if (buoyLocation.buoy == null)
                 {
-                    buoyLocation.buoy = Object.Instantiate(Globals.AssetBundle.LoadAsset<GameObject>("buoy"));
-                    buoyLocation.buoy.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+                    buoyLocation.buoy = CreateBuoyObject();
+                }
+
+                if ((Raft_Network.IsHost && RemoteSession.IsConnectedToPlayer)
+                    || (!Raft_Network.IsHost && ClientSession.IsHostConnectedToPlayer))
+                {
                     buoyLocation.buoy.SetActive(true);
-
-                    // Not sure what the best approach here is:
-
-                    // 1st option: Buoy solid for players but not rafts: No annoyance for raft, can climb on buoy which feels immersive, but buoy can push players when raft sails through it
-                    // No code needed, that's the default
-
-                    // 2nd option: Buoy solid for rafts and players: Most realism, but annoying when you get stuck on the buoy with your raft
-                    // buoy.layer = LayerMask.NameToLayer("Obstruction");
-
-                    // 3rd option: Buoy not solid: Buoy feels out of place/unreal
-                    foreach (var collider in buoyLocation.buoy.GetComponentsInChildren<Collider>())
-                        Object.Destroy(collider);
+                }
+                else
+                {
+                    buoyLocation.buoy.SetActive(false);
                 }
 
                 var smoke = buoyLocation.buoy.GetComponentInChildren<ParticleSystem>();
@@ -312,6 +360,35 @@ namespace RaftMMO.World
                 float height = (BuoyAmplitude * Mathf.Sin(2.0f * Mathf.PI * BuoyFrequency * Time.time)) + BuoyBaseHeight;
                 buoyLocation.buoy.transform.position = new Vector3(buoyLocation.Location.x, height, buoyLocation.Location.y);
             });
+
+            sinkingBuoyLocations.ForEach(sinkingBuoyLocation =>
+            {
+                if (sinkingBuoyLocation.buoy == null)
+                {
+                    sinkingBuoyLocation.buoy = CreateBuoyObject();
+                    sinkingBuoyLocation.buoy.SetActive(true);
+                    float spawnHeight = (BuoyAmplitude * Mathf.Sin(2.0f * Mathf.PI * BuoyFrequency * Time.time)) + BuoyBaseHeight;
+                    sinkingBuoyLocation.buoy.transform.position = new Vector3(sinkingBuoyLocation.Location.x, spawnHeight, sinkingBuoyLocation.Location.y);
+                }
+
+                var smoke = sinkingBuoyLocation.buoy.GetComponentInChildren<ParticleSystem>();
+                if (smoke != null)
+                {
+                    var emission = smoke.emission;
+                    emission.enabled = false;
+                }
+
+                float height = sinkingBuoyLocation.buoy.transform.position.y - Time.deltaTime * BUOY_SINK_SPEED;
+                sinkingBuoyLocation.buoy.transform.position = new Vector3(sinkingBuoyLocation.Location.x, height, sinkingBuoyLocation.Location.y);
+
+                if (height < BUOY_SINK_DISTANCE)
+                {
+                    sinkingBuoyLocation.buoy.SetActive(false);
+                    sinkingBuoyLocation.Destroy();
+                }
+            });
+
+            sinkingBuoyLocations = sinkingBuoyLocations.Where(b => b.buoy != null).ToList();
         }
 
         private static Material CreateSmokeMaterial()

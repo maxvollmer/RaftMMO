@@ -21,8 +21,8 @@ namespace RaftMMO.World
             }
         }
 
-        private static List<Dictionary<Reciever, Reciever_Dot>> buoyReceiverDots = new List<Dictionary<Reciever, Reciever_Dot>>();
-        private static Dictionary<Reciever, Reciever_Dot> raftReceiverDots = new Dictionary<Reciever, Reciever_Dot>();
+        private static readonly List<Dictionary<Reciever, Reciever_Dot>> buoyReceiverDots = new List<Dictionary<Reciever, Reciever_Dot>>();
+        private static readonly Dictionary<Reciever, Reciever_Dot> raftReceiverDots = new Dictionary<Reciever, Reciever_Dot>();
 
         private static void UpdateReceiverDots(Reciever reciever)
         {
@@ -127,16 +127,16 @@ namespace RaftMMO.World
 
         public static void Destroy()
         {
-            foreach (var buoyReceiverDot in buoyReceiverDots.Select(d => d.Values).SelectMany(d => d))
+            foreach (var buoyReceiverDot in buoyReceiverDots.SelectMany(d => d.Values).Where(d => d?.gameObject != null))
             {
                 Object.Destroy(buoyReceiverDot.gameObject);
             }
-            foreach (var raftReceiverDot in raftReceiverDots.Values)
+            foreach (var raftReceiverDot in raftReceiverDots.Values.Where(d => d?.gameObject != null))
             {
                 Object.Destroy(raftReceiverDot.gameObject);
             }
-            buoyReceiverDots.Clear();
-            raftReceiverDots.Clear();
+            buoyReceiverDots?.Clear();
+            raftReceiverDots?.Clear();
         }
     }
 }

@@ -4,8 +4,8 @@ namespace RaftMMO.Utilities
 {
     public class Globals
     {
-        public static int ModNetworkVersion { get; } = 19;
-        public static int SteamNetworkChannel { get; } = 1338;
+        public static int ModNetworkVersion { get; } = 20;
+        public static int SteamNetworkChannel { get; } = 1339;
 
         public static int ReliableMessageSizeLimit { get; } = 1000000;
 
@@ -34,13 +34,17 @@ namespace RaftMMO.Utilities
         public static System.Random RND { get; } = new System.Random();
 
 
+        public static string LobbyAllName = "de.maxvollmer.raftmmo.all";
+        public static string LobbyConnectName = "de.maxvollmer.raftmmo.lobby";
+
+
 
         /// TODO TEMP TODO TEMP
         /// TODO TEMP TODO TEMP
         /// TODO TEMP TODO TEMP
-
-        public static bool TEMPDEBUGConnectToLocalPlayer { get; } = false;
-        public static bool TEMPDEBUGStaticBuoyPosition { get; } = true;
+        public static bool TEMPDEBUGNoStartCoolDown { get; } = true;
+        public static bool TEMPDEBUGConnectToLocalPlayer { get; } = true;
+        public static bool TEMPDEBUGStaticBuoyPosition { get; } = false;
 
         /// TODO TEMP TODO TEMP
         /// TODO TEMP TODO TEMP

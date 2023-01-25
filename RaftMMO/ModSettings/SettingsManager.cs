@@ -84,6 +84,11 @@ namespace RaftMMO.ModSettings
             return false;
         }
 
+        public static bool IsFavoritedRaft(ulong steamID)
+        {
+            return GetFavoritedRaftsByDate.Any(raftEntry => SteamHelper.IsSameSteamID(raftEntry.steamID, steamID));
+        }
+
         public static void BlockRaft(ulong steamID, string sessionID, bool unblock = false)
         {
             if (Settings.MetRafts.TryGetValue(MakeUniqueID(steamID, sessionID), out RaftEntry raftEntry))

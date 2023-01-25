@@ -113,7 +113,7 @@ namespace RaftMMO.Network
         {
             Globals.CurrentRaftMeetingPoint = message.CurrentRaftMeetingPoint;
             Globals.CurrentRaftMeetingPointDistance = message.CurrentRaftMeetingPointDistance;
-            BuoyManager.ReceiveBuyLocationsFromHost(message.BuoyLocations);
+            BuoyManager.ReceiveBuyLocationsFromHost(message.BuoyLocations, message.SinkingBuoyLocations);
         }
 
         public static void HandleDisconnect()

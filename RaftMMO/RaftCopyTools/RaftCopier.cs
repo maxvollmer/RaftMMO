@@ -23,7 +23,15 @@ namespace RaftMMO.RaftCopyTools
             raft.transform.position = Vector3.zero;
             raft.transform.rotation = Quaternion.identity;
 
-            var blockData = raft.GetComponentsInChildren<Block>().Where(IsBlockForSending).Select(block => new SerializableData.RaftBlockData(block)).ToArray();
+            SerializableData.RaftBlockData[] blockData;
+            if (BuoyManager.IsCloseEnoughToBeVisible())
+            {
+                blockData = raft.GetComponentsInChildren<Block>().Where(IsBlockForSending).Select(block => new SerializableData.RaftBlockData(block)).ToArray();
+            }
+            else
+            {
+                blockData = new SerializableData.RaftBlockData[0];
+            }
 
             raft.transform.position = backupRaftPosition;
             raft.transform.rotation = backupRaftRotation;

@@ -96,10 +96,43 @@ namespace RaftMMO.Network
 
         public static CSteamID ConnectedPlayer { get { return lobbyPlayers[connectedPlayerIndex]; } }
 
+
+        private static bool wasConnectedToPlayer = false;
+        private static CSteamID wasConnectedToPlayerSteamID = CSteamID.Nil;
+        private static string wasConnectedToPlayerSessionID = string.Empty;
+        private static List<RequestingPlayer> wasConnectedPlayers = new List<RequestingPlayer>();
+
+        private static bool isFirstUpdate = true;
+        private static Stopwatch firstUpdateTime = null;
+
         public static void Update()
         {
             if (!Raft_Network.IsHost)
                 return;
+
+            if (isFirstUpdate)
+            {
+                isFirstUpdate = false;
+                if (!Globals.TEMPDEBUGNoStartCoolDown)
+                {
+                    firstUpdateTime = new Stopwatch();
+                    firstUpdateTime.Start();
+                }
+                return;
+            }
+
+            if (firstUpdateTime != null)
+            {
+                if (firstUpdateTime.ElapsedMilliseconds < SettingsManager.Settings.GlobalMeetCoolDown)
+                {
+                    return;
+                }
+                else
+                {
+                    firstUpdateTime.Stop();
+                    firstUpdateTime = null;
+                }
+            }
 
             if (BuoyManager.IsCloseEnoughToConnect())
             {
@@ -126,6 +159,12 @@ namespace RaftMMO.Network
 
             if (!IsConnectedToPlayer)
             {
+                if (wasConnectedToPlayer)
+                {
+                    wasConnectedToPlayer = false;
+                    wasConnectedPlayers.Add(new RequestingPlayer(wasConnectedToPlayerSteamID, wasConnectedToPlayerSessionID, 0));
+                }
+
                 if (RemoteHandShake != 0)
                 {
                     RemoteHandShake = 0;
@@ -152,6 +191,11 @@ namespace RaftMMO.Network
 
             if (IsConnectedToPlayer)
             {
+                wasConnectedToPlayer = true;
+                wasConnectedToPlayerSteamID = ConnectedPlayer;
+                wasConnectedToPlayerSessionID = ConnectedSessionID;
+
+
                 // leave lobby, so players don't try to connect to us while we are already connected
                 if (IsInLobby())
                 {
@@ -199,6 +243,7 @@ namespace RaftMMO.Network
             connectionRejected = false;
 
             isFirstPositionUpdate = true;
+            isFirstUpdate = true;
         }
 
         private static void ConnectToRandomPlayerWithRaftMMOMod()
@@ -238,8 +283,8 @@ namespace RaftMMO.Network
 
                     if (!hasAcceptedAny
                         && requestingPlayer.timeSinceRequest.ElapsedMilliseconds < 5000
-                        && !SettingsManager.IsBlockedRaft(requestingPlayer.steamID.m_SteamID, requestingPlayer.remoteSessionID)
-                        && (BuoyManager.IsCloseEnoughToConnectToAll() || SettingsManager.IsFavoritedRaft(requestingPlayer.steamID.m_SteamID, requestingPlayer.remoteSessionID)))
+                        && CanConnectWithThisRaft(requestingPlayer.steamID.m_SteamID, requestingPlayer.remoteSessionID)
+                        && BuoyManager.IsCloseEnoughToConnect())
                     {
                         for (int i = 0; i < lobbyPlayers.Count; i++)
                         {
@@ -298,8 +343,7 @@ namespace RaftMMO.Network
         {
             RaftMMOLogger.LogVerbose("AcceptConnectionRequest: " + handshake);
 
-            if (SettingsManager.IsBlockedRaft(steamID.m_SteamID, remoteSessionID)
-                || (!BuoyManager.IsCloseEnoughToConnectToAll() && !SettingsManager.IsFavoritedRaft(steamID.m_SteamID, remoteSessionID)))
+            if (!BuoyManager.IsCloseEnoughToConnect() || !CanConnectWithThisRaft(steamID.m_SteamID, remoteSessionID))
             {
                 RejectConnectionRequest(steamID);
                 return;
@@ -333,8 +377,7 @@ namespace RaftMMO.Network
         {
            RaftMMOLogger.LogVerbose("HandleRequestConnection: " + IsConnectedToPlayer + ", handshake: " + handshake);
 
-            if (SettingsManager.IsBlockedRaft(steamID.m_SteamID, remoteSessionID)
-                || (!BuoyManager.IsCloseEnoughToConnectToAll() && !SettingsManager.IsFavoritedRaft(steamID.m_SteamID, remoteSessionID)))
+            if (!BuoyManager.IsCloseEnoughToConnect() || !CanConnectWithThisRaft(steamID.m_SteamID, remoteSessionID))
             {
                 RejectConnectionRequest(steamID);
                 return;
@@ -373,8 +416,8 @@ namespace RaftMMO.Network
             if (isConnectingToPlayer
                 && connectedPlayerIndex >= 0 && connectedPlayerIndex < lobbyPlayers.Count
                 && SteamHelper.IsSameSteamID(steamID, lobbyPlayers[connectedPlayerIndex])
-                && !SettingsManager.IsBlockedRaft(steamID.m_SteamID, remoteSessionID)
-                && (BuoyManager.IsCloseEnoughToConnectToAll() || SettingsManager.IsFavoritedRaft(steamID.m_SteamID, remoteSessionID))
+                && CanConnectWithThisRaft(steamID.m_SteamID, remoteSessionID)
+                && BuoyManager.IsCloseEnoughToConnect()
                 && localhandshake == LocalHandShake)
             {
                 DoConnect(remoteSessionID, remotehandshake);
@@ -390,6 +433,47 @@ namespace RaftMMO.Network
             }
 
             RaftMMOLogger.LogVerbose("HandleAcceptConnection Done: " + isConnectingToPlayer);
+        }
+
+        private static bool CanConnectWithThisPlayer(ulong steamID)
+        {
+            if (SettingsManager.IsBlockedPlayer(steamID))
+                return false;
+
+            wasConnectedPlayers = wasConnectedPlayers.Where(p => !IsInGlobalCoolDown(p) && !IsInIndividualCoolDown(p, p.steamID.m_SteamID, p.remoteSessionID)).ToList();
+
+            return !wasConnectedPlayers.Any(p => IsInGlobalCoolDown(p) || IsInIndividualCoolDown(p, steamID));
+        }
+
+        private static bool CanConnectWithThisRaft(ulong steamID, string remoteSessionID)
+        {
+            if (SettingsManager.IsBlockedRaft(steamID, remoteSessionID))
+                return false;
+
+            wasConnectedPlayers = wasConnectedPlayers.Where(p => !IsInGlobalCoolDown(p) && !IsInIndividualCoolDown(p, p.steamID.m_SteamID, p.remoteSessionID)).ToList();
+
+            return !wasConnectedPlayers.Any(p => IsInGlobalCoolDown(p) || IsInIndividualCoolDown(p, steamID, remoteSessionID));
+        }
+
+        private static bool IsInGlobalCoolDown(RequestingPlayer player)
+        {
+            int globalCoolDown = SettingsManager.Settings.GlobalMeetCoolDown;
+            return globalCoolDown > 0 && player.timeSinceRequest.ElapsedMilliseconds < globalCoolDown;
+        }
+
+        private static bool IsInIndividualCoolDown(RequestingPlayer player, ulong steamID, string remoteSessionID = null)
+        {
+            if (steamID == player.steamID.m_SteamID
+                && (string.IsNullOrEmpty(remoteSessionID) || remoteSessionID == player.remoteSessionID))
+            {
+                int individualCoolDown = SettingsManager.Settings.IndividualMeetCoolDown;
+                if (individualCoolDown > 0 && player.timeSinceRequest.ElapsedMilliseconds < individualCoolDown)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void DoConnect(string remoteSessionID, int handshake)
@@ -510,7 +594,7 @@ namespace RaftMMO.Network
             }
         }
 
-        public static void HandlePlayerPositionUpdate(Messages.PlayerUpdateMessage message)
+        public static void HandlePlayerPositionUpdate(PlayerUpdateMessage message)
         {
             if (SettingsManager.IsBlockedPlayer(message.steamID))
             {
@@ -599,7 +683,7 @@ namespace RaftMMO.Network
 
         private static void RefreshPlayerList()
         {
-           RaftMMOLogger.LogVerbose("RefreshPlayerList");
+            RaftMMOLogger.LogVerbose("RefreshPlayerList");
 
             connectedPlayerIndex = -1;
             ConnectedSessionID = null;
@@ -614,15 +698,18 @@ namespace RaftMMO.Network
 
             int numplayers = SteamMatchmaking.GetNumLobbyMembers(lobbies[joinedLobbyIndex]);
 
+            List<CSteamID> normalLobbyPlayers = new List<CSteamID>();
+            List<CSteamID> favoriteLobbyPlayers = new List<CSteamID>();
+
             Network_Player localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
             for (int i = 0; i < numplayers; i++)
             {
                 CSteamID playerSteamID = SteamMatchmaking.GetLobbyMemberByIndex(lobbies[joinedLobbyIndex], i);
 
-                if (SettingsManager.IsBlockedPlayer(playerSteamID.m_SteamID))
+                if (!CanConnectWithThisPlayer(playerSteamID.m_SteamID))
                     continue;
 
-                if (!BuoyManager.IsCloseEnoughToConnectToAll() && !SettingsManager.GetFavoritedRaftsByDate.Any(raftEntry => SteamHelper.IsSameSteamID(raftEntry.steamID, playerSteamID.m_SteamID)))
+                if (!BuoyManager.IsCloseEnoughToConnect())
                     continue;
 
                 // don't connect to yourself unless we are debugging locally
@@ -636,11 +723,23 @@ namespace RaftMMO.Network
                     continue;
 
                 SteamHelper.Connect(playerSteamID);
-                lobbyPlayers.Add(playerSteamID);
-            }
-            lobbyPlayers.Shuffle();
 
-           RaftMMOLogger.LogVerbose("RefreshPlayerList Done: ", lobbyPlayers.Count);
+                if (SettingsManager.IsFavoritedRaft(playerSteamID.m_SteamID))
+                {
+                    favoriteLobbyPlayers.Add(playerSteamID);
+                }
+                else
+                {
+                    normalLobbyPlayers.Add(playerSteamID);
+                }
+            }
+
+            favoriteLobbyPlayers.Shuffle();
+            normalLobbyPlayers.Shuffle();
+            lobbyPlayers.AddRange(favoriteLobbyPlayers);
+            lobbyPlayers.AddRange(normalLobbyPlayers);
+
+            RaftMMOLogger.LogVerbose($"RefreshPlayerList Done: {lobbyPlayers.Count}, favorites: {favoriteLobbyPlayers.Count}");
         }
 
         private static void CancelLobbyJoining()
@@ -697,7 +796,7 @@ namespace RaftMMO.Network
             CancelLobbyJoining();
 
             SteamMatchmaking.AddRequestLobbyListDistanceFilter(ELobbyDistanceFilter.k_ELobbyDistanceFilterWorldwide);
-            SteamMatchmaking.AddRequestLobbyListStringFilter("id", "de.maxvollmer.raftmmo.lobby", ELobbyComparison.k_ELobbyComparisonEqual);
+            SteamMatchmaking.AddRequestLobbyListStringFilter("id", Globals.LobbyConnectName, ELobbyComparison.k_ELobbyComparisonEqual);
             lobbyMatchListCallResult = CallResult<LobbyMatchList_t>.Create(OnRequestLobbyListResponse);
             lobbyMatchListCallResult.Set(SteamMatchmaking.RequestLobbyList());
 
@@ -794,7 +893,7 @@ namespace RaftMMO.Network
             if (param.m_eResult == EResult.k_EResultOK)
             {
                 var steamid = new CSteamID(param.m_ulSteamIDLobby);
-                SteamMatchmaking.SetLobbyData(steamid, "id", "de.maxvollmer.raftmmo.lobby");
+                SteamMatchmaking.SetLobbyData(steamid, "id", Globals.LobbyConnectName);
                 SteamMatchmaking.SetLobbyJoinable(steamid, true);
                 lobbies.Add(steamid);
                 JoinedLobby(lobbies.Count - 1);
