@@ -1,7 +1,5 @@
 ﻿using HarmonyLib;
-using RaftMMO.Utilities;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace RaftMMO.MainMenu
 {

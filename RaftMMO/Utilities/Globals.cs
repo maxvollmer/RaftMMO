@@ -42,8 +42,8 @@ namespace RaftMMO.Utilities
         /// TODO TEMP TODO TEMP
         /// TODO TEMP TODO TEMP
         /// TODO TEMP TODO TEMP
-        public static bool TEMPDEBUGNoStartCoolDown { get; } = true;
-        public static bool TEMPDEBUGConnectToLocalPlayer { get; } = true;
+        public static bool TEMPDEBUGNoStartCoolDown { get; } = false;
+        public static bool TEMPDEBUGConnectToLocalPlayer { get; } = false;
         public static bool TEMPDEBUGStaticBuoyPosition { get; } = false;
 
         /// TODO TEMP TODO TEMP

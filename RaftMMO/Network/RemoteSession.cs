@@ -8,11 +8,9 @@ using System.Linq;
 using UnityEngine;
 using HarmonyLib;
 
-using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 using RaftMMO.ModSettings;
 using RaftMMO.Network.Messages;
-using RaftMMO.Network.SerializableData.Simple;
 
 namespace RaftMMO.Network
 {
@@ -244,6 +242,8 @@ namespace RaftMMO.Network
 
             isFirstPositionUpdate = true;
             isFirstUpdate = true;
+            firstUpdateTime?.Stop();
+            firstUpdateTime = null;
         }
 
         private static void ConnectToRandomPlayerWithRaftMMOMod()

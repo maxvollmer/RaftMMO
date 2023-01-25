@@ -1,6 +1,5 @@
 ﻿using RaftMMO.Utilities;
 using Steamworks;
-using System;
 using System.Collections.Generic;
 
 namespace RaftMMO.Network

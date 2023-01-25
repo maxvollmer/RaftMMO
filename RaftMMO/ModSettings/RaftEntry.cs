@@ -1,7 +1,4 @@
-﻿
-using System;
-
-namespace RaftMMO.ModSettings
+﻿namespace RaftMMO.ModSettings
 {
     [System.Serializable()]
     public class RaftEntry

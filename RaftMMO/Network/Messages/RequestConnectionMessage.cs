@@ -1,6 +1,5 @@
 ﻿
 using RaftMMO.Utilities;
-using System;
 
 namespace RaftMMO.Network.Messages
 {

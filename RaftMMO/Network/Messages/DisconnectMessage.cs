@@ -1,6 +1,4 @@
-﻿using RaftMMO.Network.SerializableData.Simple;
-
-namespace RaftMMO.Network.Messages
+﻿namespace RaftMMO.Network.Messages
 {
     [System.Serializable()]
     public class DisconnectMessage : BaseMessage

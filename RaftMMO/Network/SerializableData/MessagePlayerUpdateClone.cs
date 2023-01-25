@@ -1,7 +1,5 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace RaftMMO.Network.SerializableData
 {
