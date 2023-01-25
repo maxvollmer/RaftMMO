@@ -5,9 +5,9 @@ Patreon: https://www.patreon.com/maxvollmer
 Discord: https://discord.gg/jujwEGf62K
 Youtube: https://www.youtube.com/channel/UCMLx0EEXSe5NiQ8fQgtN9PQ
 
-VERSION 0.3.0-alpha
+VERSION 0.4.0-alpha
 
-Release date: 2022-08-01
+Release date: 2023-01-25
 
 =======
 This is a mod for Raft that adds support for meeting other rafts from other game sessions.
@@ -17,7 +17,7 @@ If you get close to a buoy you might meet another raft.
 You can trade resources and items with players from the other raft.
 
 =======
-Copyright (c) 2020-2022 Max Vollmer
+Copyright (c) 2020-2023 Max Vollmer
 
 Requires the game Raft on Steam.
 

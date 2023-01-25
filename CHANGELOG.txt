@@ -1,3 +1,20 @@
+0.4.0-alpha
+* The buoys are dead, long live the buoy!
+   Completely reworked how meeting other rafts works. There are no more random buoys spawning in the ocean.
+   You don't have to sail to a certain location to meet up. Instead, if there is enough space in the nearby ocean
+   for a meetup, and another player is also able to meet, you will connect and a buoy will spawn to mark the meeting spot.
+   That means if you see a buoy, you are guaranteed another player, and if there are no other players, you won't see buoys.
+* Added a counter in the menu that shows how many people are currently playing with RaftMMO.
+* Added a global meeting cooldown of 1 minute, and a cooldown of 15 minutes per remote raft,
+   to avoid running into the same remote raft again and again.
+* Small performance improvements.
+* Improved how favorited rafts are prioritized.
+* Improved distance detection between islands and potential meetup points.
+* Fixed a rare NullReference exception in the receiver patch.
+
+0.3.2-alpha
+* Removed a debug/testing mode accidentally left in the previous version
+
 0.3.1-alpha
 * Fixed potential RCE vulnerability (see https://www.synacktiv.com/sites/default/files/2022-12/Raft_RCE.pdf)
 * THIS DOES NOT FIX THE RCE VULNERABILITY IN RAFT ITSELF, ONLY IN THE MOD'S OWN NETWORK LAYER!!!

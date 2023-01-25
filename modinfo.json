@@ -2,7 +2,7 @@
   "name": "RaftMMO",
   "author": "Max Vollmer",
   "description": "Links up multiple game sessions so you can meet other rafts.",
-  "version": "0.3.1-alpha",
+  "version": "0.4.0-alpha",
   "license": "MIT License",
   "icon": "icon.png",
   "banner": "banner.png",
