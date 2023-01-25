@@ -49,6 +49,147 @@ namespace RaftMMO.MainMenu
             modSettingsTab = null;
         }
 
+
+        private static List<CSteamID> allLobbies = new List<CSteamID>();
+        private static int joinedLobbyIndex = -1;
+        private static CallResult<LobbyMatchList_t> allLobbyListCallResult = null;
+        private static CallResult<LobbyCreated_t> allLobbyCreatedCallResult = null;
+        private static CallResult<LobbyEnter_t> allLobbyEnterCallResult = null;
+
+        private static List<Text> _numberOfPlayersTexts = new List<Text>();
+        private static object _numberOfPlayersTextLock = new object();
+
+        private static void UpdateNumberOfPlayersText(int numberOfPlayers)
+        {
+            lock (_numberOfPlayersTextLock)
+            {
+                _numberOfPlayersTexts = _numberOfPlayersTexts.Where(t => !t.IsDestroyed()).ToList();
+
+                foreach (var numberOfPlayersText in _numberOfPlayersTexts)
+                {
+                    numberOfPlayersText.text = "Number of RaftMMO rafts currently sailing the seas: " + numberOfPlayers;
+                }
+            }
+        }
+
+        private static void AddNumberOfRaftMMOPlayersText(Text text)
+        {
+            lock (_numberOfPlayersTextLock)
+            {
+                allLobbyListCallResult?.Cancel();
+                allLobbyCreatedCallResult?.Cancel();
+                allLobbyEnterCallResult?.Cancel();
+                allLobbyListCallResult = null;
+                allLobbyCreatedCallResult = null;
+                allLobbyEnterCallResult = null;
+
+                allLobbies.Clear();
+                joinedLobbyIndex = -1;
+
+                _numberOfPlayersTexts.Add(text);
+
+                SteamMatchmaking.AddRequestLobbyListDistanceFilter(ELobbyDistanceFilter.k_ELobbyDistanceFilterWorldwide);
+                SteamMatchmaking.AddRequestLobbyListStringFilter("id", Globals.LobbyAllName, ELobbyComparison.k_ELobbyComparisonEqual);
+                allLobbyListCallResult = CallResult<LobbyMatchList_t>.Create(OnAllLobbyListResponse);
+                allLobbyListCallResult.Set(SteamMatchmaking.RequestLobbyList());
+            }
+        }
+
+        private static void OnAllLobbyListResponse(LobbyMatchList_t param, bool bIOFailure)
+        {
+            lock (_numberOfPlayersTextLock)
+            {
+                if (param.m_nLobbiesMatching == 0)
+                {
+                    CreateNewLobby();
+                }
+                else
+                {
+                    int numberOfPlayers = 1;
+                    for (uint i = 0; i < param.m_nLobbiesMatching; i++)
+                    {
+                        var allLobbySteamID = SteamMatchmaking.GetLobbyByIndex((int)i);
+                        numberOfPlayers += SteamMatchmaking.GetNumLobbyMembers(allLobbySteamID);
+                        allLobbies.Add(allLobbySteamID);
+                    }
+                    UpdateNumberOfPlayersText(numberOfPlayers);
+                    allLobbies.Shuffle();
+                    TryJoinLobby(0);
+                }
+            }
+        }
+
+        private static void CreateNewLobby()
+        {
+            lock (_numberOfPlayersTextLock)
+            {
+                allLobbyCreatedCallResult = CallResult<LobbyCreated_t>.Create(OnCreateAllLobby);
+                allLobbyCreatedCallResult.Set(SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeInvisible, 250));
+            }
+        }
+
+        private static void OnCreateAllLobby(LobbyCreated_t param, bool bIOFailure)
+        {
+            lock (_numberOfPlayersTextLock)
+            {
+                if (param.m_eResult == EResult.k_EResultOK)
+                {
+                    var steamid = new CSteamID(param.m_ulSteamIDLobby);
+                    SteamMatchmaking.SetLobbyData(steamid, "id", Globals.LobbyConnectName);
+                    SteamMatchmaking.SetLobbyJoinable(steamid, true);
+                    allLobbies.Add(steamid);
+                    JoinedLobby(allLobbies.Count - 1);
+                }
+            }
+        }
+
+        private static void TryJoinLobby(int index)
+        {
+            lock (_numberOfPlayersTextLock)
+            {
+                joinedLobbyIndex = index;
+                allLobbyEnterCallResult = CallResult<LobbyEnter_t>.Create(OnLobbyEntered);
+                allLobbyEnterCallResult.Set(SteamMatchmaking.JoinLobby(allLobbies[index]));
+            }
+        }
+
+        private static void OnLobbyEntered(LobbyEnter_t param, bool bIOFailure)
+        {
+            lock (_numberOfPlayersTextLock)
+            {
+                if (joinedLobbyIndex < 0 || joinedLobbyIndex >= allLobbies.Count || allLobbies[joinedLobbyIndex].m_SteamID != param.m_ulSteamIDLobby)
+                {
+                    RaftMMOLogger.LogWarning("OnLobbyEntered got invalid lobby: " + joinedLobbyIndex + ", " + allLobbies.Count);
+                    return;
+                }
+
+                if (param.m_EChatRoomEnterResponse == (uint)EChatRoomEnterResponse.k_EChatRoomEnterResponseSuccess)
+                {
+                    JoinedLobby(joinedLobbyIndex);
+                }
+                else
+                {
+                    joinedLobbyIndex++;
+                    if (joinedLobbyIndex < allLobbies.Count)
+                    {
+                        TryJoinLobby(joinedLobbyIndex);
+                    }
+                    else if (param.m_EChatRoomEnterResponse == (uint)EChatRoomEnterResponse.k_EChatRoomEnterResponseFull)
+                    {
+                        CreateNewLobby();
+                    }
+                }
+            }
+        }
+
+        private static void JoinedLobby(int index)
+        {
+            joinedLobbyIndex = index;
+            UpdateNumberOfPlayersText(allLobbies.Sum(l => SteamMatchmaking.GetNumLobbyMembers(l)));
+        }
+
+
+
         public static void BuildSettingsMenu(GameObject optionMenuParent, GameObject parent)
         {
             var optionMenuCopy = Object.Instantiate(optionMenuParent);
@@ -109,6 +250,10 @@ namespace RaftMMO.MainMenu
         {
             container.DestroyAllChildren();
 
+            var numPlayersText = CreateText(templates, container, "Number of RaftMMO rafts currently sailing the seas: ...");
+            AddNumberOfRaftMMOPlayersText(numPlayersText.GetComponent<Text>());
+            CreateSpacer(templates, container, 24f);
+
             RaftEntry[] raftEntries;
 
             switch (raftType)
@@ -166,6 +311,10 @@ namespace RaftMMO.MainMenu
         {
             container.DestroyAllChildren();
 
+            var numPlayersText = CreateText(templates, container, "Number of RaftMMO rafts currently sailing the seas: ...");
+            AddNumberOfRaftMMOPlayersText(numPlayersText.GetComponent<Text>());
+            CreateSpacer(templates, container, 24f);
+
             PlayerEntry[] playerEntries;
 
             switch (playerType)
@@ -209,11 +358,12 @@ namespace RaftMMO.MainMenu
         {
             CreateText(templates, tab.content, "Hi, I am Max! I make RaftMMO.");
             CreateSpacer(templates, tab.content, 12);
-            CreateText(templates, tab.content, "If you like my work, please consider supporting me on Patreon:");
-            CreateButton(templates, tab.content, "Patreon", () => Application.OpenURL("https://www.patreon.com/maxvollmer"));
+            CreateText(templates, tab.content, "If you like my work, please consider supporting me on Ko-Fi or Patreon:");
+            CreateButton(templates, tab.content, "Ko-Fi", () => Application.OpenURL("https://www.ko-fi.com/maxmakesmods"));
+            CreateButton(templates, tab.content, "Patreon", () => Application.OpenURL("https://www.patreon.com/maxmakesmods"));
 
             CreateText(templates, tab.content, "Also check out my Discord:");
-            CreateButton(templates, tab.content, "Max Makes Mods", () => Application.OpenURL("https://discord.gg/32VbCSt"));
+            CreateButton(templates, tab.content, "Max Makes Mods", () => Application.OpenURL("https://discord.gg/jujwEGf62K"));
 
             CreateSpacer(templates, tab.content, 24);
             CreateText(templates, tab.content, "This mod spawns buoys in the ocean, at which you can meet other rafts.");
@@ -236,7 +386,7 @@ namespace RaftMMO.MainMenu
 
             CreateSpacer(templates, tab.content, 12);
             CreateText(templates, tab.content, "I occasionally post WIP videos of my projects on Youtube:");
-            CreateButton(templates, tab.content, "Youtube", () => Application.OpenURL("https://www.youtube.com/channel/UCMLx0EEXSe5NiQ8fQgtN9PQ"));
+            CreateButton(templates, tab.content, "Youtube", () => Application.OpenURL("https://www.youtube.com/MaxMakesMods"));
 
             CreateSpacer(templates, tab.content, 12);
             CreateText(templates, tab.content, "Other projects I make that people like:");
@@ -355,7 +505,6 @@ namespace RaftMMO.MainMenu
 
         private static bool IsMeetingThisRaftRightNow(ulong steamID, string sessionID)
         {
-        
             return (Raft_Network.IsHost && RemoteSession.IsConnectedPlayer(new CSteamID(steamID)) && RemoteSession.ConnectedSessionID == sessionID)
                    || (!Raft_Network.IsHost && SteamHelper.IsSameSteamID(ClientSession.ConnectedSteamID, steamID) && ClientSession.ConnectedSessionID == sessionID);
         }
