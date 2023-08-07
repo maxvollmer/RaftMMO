@@ -21,7 +21,7 @@ namespace RaftMMO.Network.Messages
         public BuoysUpdateMessage()
             : base(MessageType.BUOYS, false)
         {
-            this.buoyLocations = BuoyManager.BuoyLocations.ToArray();
+            this.buoyLocations = BuoyManager.VisibleBuoyLocations.ToArray();
             this.sinkingBuoyLocations = BuoyManager.SinkingBuoyLocations.ToArray();
             this.currentRaftMeetingPoint = new SerializableData.Vector(Globals.CurrentRaftMeetingPoint);
             this.currentRaftMeetingPointDistance = Globals.CurrentRaftMeetingPointDistance;

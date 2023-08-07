@@ -1,4 +1,5 @@
 ﻿
+using RaftMMO.ModSettings;
 using RaftMMO.Utilities;
 
 namespace RaftMMO.Network.Messages
@@ -16,7 +17,10 @@ namespace RaftMMO.Network.Messages
             mySessionID = ((((ulong)SaveAndLoad.CurrentGameFileName.GetHashCode()) << 32) + (ulong)(SaveAndLoad.CurrentGameFileName + "a").GetHashCode()).ToString();
             yourHandshake = handshake;
             myHandshake = RemoteSession.LocalHandShake;
-            RaftMMOLogger.LogVerbose("AcceptConnectionMessage(" + yourHandshake + "," + myHandshake + ")");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("AcceptConnectionMessage(" + yourHandshake + "," + myHandshake + ")");
+            }
         }
 
         // for serialization

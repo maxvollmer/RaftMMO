@@ -17,10 +17,10 @@ namespace RaftMMO.Network.SerializableData
         [NonSerialized()]
         private bool hasHash = false;
 
-        public RaftPlantData(Plant plant)
+        public RaftPlantData(Transform raftRoot, Block parent, Plant plant)
         {
-            position = new Vector(plant.transform.position);
-            rotation = new Vector(plant.transform.rotation.eulerAngles);
+            position = new Vector(raftRoot.InverseTransformPoint(plant.transform.position));
+            rotation = new Vector((Quaternion.Inverse(raftRoot.rotation) * plant.transform.rotation).eulerAngles);
             scale = new Vector(ClampAndNormalizeScale(plant.transform.lossyScale));
             plantUniqueItemIndex = plant.item.UniqueIndex;
         }

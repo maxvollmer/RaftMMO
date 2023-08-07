@@ -1,5 +1,6 @@
 ﻿using RaftMMO.ModSettings;
 using RaftMMO.Network.Messages;
+using RaftMMO.Network.SerializableData;
 using RaftMMO.RaftCopyTools;
 using RaftMMO.Trade;
 using RaftMMO.Utilities;
@@ -68,7 +69,14 @@ namespace RaftMMO.Network
         public static bool SendMessage(CSteamID steamID, BaseMessage message)
         {
             bool acceptresult = SteamHelper.Connect(steamID);
-            RaftMMOLogger.LogVerbose("SendMessage: " + message.type + ", " + acceptresult);
+
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                if (SettingsManager.Settings.LogVerbose)
+                {
+                    RaftMMOLogger.LogVerbose("SendMessage: " + message.type + ", " + acceptresult);
+                }
+            }
 
             MemoryStream stream = new MemoryStream();
             SerializeMessage(message, stream);
@@ -86,7 +94,13 @@ namespace RaftMMO.Network
                     nummessages += 1;
                 }
                 int id = Guid.NewGuid().GetHashCode();
-                RaftMMOLogger.LogVerbose("SendMessage: message exceeds limit " + Globals.ReliableMessageSizeLimit + " (" + array.Length + "), splitting into " + nummessages + " split messages of size " + splitsize + " with id: " + id);
+                if (SettingsManager.Settings.LogVerbose)
+                {
+                    if (SettingsManager.Settings.LogVerbose)
+                    {
+                        RaftMMOLogger.LogVerbose("SendMessage: message exceeds limit " + Globals.ReliableMessageSizeLimit + " (" + array.Length + "), splitting into " + nummessages + " split messages of size " + splitsize + " with id: " + id);
+                    }
+                }
                 for (int i = 0; i < nummessages; i++)
                 {
                     result = result && SendMessage(steamID, new SplitMessage(id, i, nummessages, array.SubArray(i * splitsize, Math.Min(array.Length - i * splitsize, splitsize))));
@@ -112,7 +126,13 @@ namespace RaftMMO.Network
             }
             else
             {
-                RaftMMOLogger.LogVerbose("SendMessage Done!");
+                if (SettingsManager.Settings.LogVerbose)
+                {
+                    if (SettingsManager.Settings.LogVerbose)
+                    {
+                        RaftMMOLogger.LogVerbose("SendMessage Done!");
+                    }
+                }
             }
 
             return result;
@@ -120,7 +140,13 @@ namespace RaftMMO.Network
 
         public static void UploadLocalPosUpdates(CSteamID connectedPlayer)
         {
-            RaftMMOLogger.LogVerbose("UploadPosUpdates");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                if (SettingsManager.Settings.LogVerbose)
+                {
+                    RaftMMOLogger.LogVerbose("UploadPosUpdates");
+                }
+            }
 
             var raft = ComponentManager<Raft>.Value;
 
@@ -145,11 +171,17 @@ namespace RaftMMO.Network
                     }
 
                     bool sendresult2 = SendMessage(connectedPlayer, new PlayerUpdateMessage(player, raftAttachStatus));
-                    RaftMMOLogger.LogVerbose("sendresult2: " + sendresult2);
+                    if (SettingsManager.Settings.LogVerbose)
+                    {
+                        RaftMMOLogger.LogVerbose("sendresult2: " + sendresult2);
+                    }
                 }
             }
 
-            RaftMMOLogger.LogVerbose("UploadPosUpdates Done!");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("UploadPosUpdates Done!");
+            }
         }
 
         public static void SendDisconnectMessage(CSteamID connectedPlayer, bool sendtohost, bool sendtoclients, int? overridehandshake = null)
@@ -197,36 +229,62 @@ namespace RaftMMO.Network
             }
         }
 
-        public static int UploadLocalRaft(CSteamID connectedPlayer, int counter)
+        public static IEnumerator<int> UploadLocalRaft(CSteamID connectedPlayer, int counter)
         {
-            RaftDeltaMessage message = RaftDataManager.Remote.CreateRaftDeltaMessage(RaftCopier.CreateRaftData(), Globals.FullRaftUpdateRequested, false);
+            bool fullMsg = Globals.FullRaftUpdateRequested || counter == 0;
 
-            if (!Globals.FullRaftUpdateRequested
+            RaftData raftData = null;
+            var raftDataCreator = RaftCopier.CreateRaftData();
+            while (raftDataCreator.MoveNext())
+            {
+                raftData = raftDataCreator.Current;
+                yield return counter;
+            }
+
+            RaftDeltaMessage message = RaftDataManager.Remote.CreateRaftDeltaMessage(raftData, fullMsg, false);
+
+            if (!fullMsg
                 && message.added_data.blockData.Length == 0
                 && message.removed_data.blockData.Length == 0)
-                return counter;
+            {
+                if (SettingsManager.Settings.LogVerbose)
+                {
+                    RaftMMOLogger.LogVerbose("UploadLocalRaft: nothing to send.");
+                }
+                yield return counter;
+                yield break;
+            }
 
-            if (Globals.FullRaftUpdateRequested)
+            if (fullMsg)
             {
                 counter = 0;
             }
 
             message.counter = counter;
 
-            RaftMMOLogger.LogVerbose("UploadLocalRaft: " + Globals.FullRaftUpdateRequested + ", " + message.counter);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("UploadLocalRaft: " + Globals.FullRaftUpdateRequested + ", " + message.counter);
+            }
 
             Globals.FullRaftUpdateRequested = false;
 
             bool sendresult = SendMessage(connectedPlayer, message);
 
-            RaftMMOLogger.LogVerbose("UploadLocalRaft Done: " + sendresult);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("UploadLocalRaft Done: " + sendresult);
+            }
 
-            return counter + 1;
+            yield return counter + 1;
         }
 
         public static void UploadRemotePosUpdates(CSteamID connectedPlayer)
         {
-            RaftMMOLogger.LogVerbose("UploadPosUpdates");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("UploadPosUpdates");
+            }
 
             bool sendresult1 = SendMessage(connectedPlayer,
                 new PositionUpdateMessage(
@@ -249,11 +307,17 @@ namespace RaftMMO.Network
                     }
 
                     bool sendresult2 = SendMessage(connectedPlayer, new PlayerUpdateMessage(player, raftAttachStatus));
-                    RaftMMOLogger.LogVerbose("sendresult2: " + sendresult2);
+                    if (SettingsManager.Settings.LogVerbose)
+                    {
+                        RaftMMOLogger.LogVerbose("sendresult2: " + sendresult2);
+                    }
                 }
             }
 
-            RaftMMOLogger.LogVerbose("UploadPosUpdates Done: " + sendresult1);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("UploadPosUpdates Done: " + sendresult1);
+            }
         }
 
         public static int UploadRemoteRaft(CSteamID player, bool full, int counter)
@@ -272,11 +336,17 @@ namespace RaftMMO.Network
 
             message.counter = counter;
 
-            RaftMMOLogger.LogVerbose("UploadRemoteRaft to " + player.m_SteamID + ", " + full + ", message.counter: " + message.counter);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("UploadRemoteRaft to " + player.m_SteamID + ", " + full + ", message.counter: " + message.counter);
+            }
 
             bool sendresult = SendMessage(player, message);
 
-            RaftMMOLogger.LogVerbose("UploadRemoteRaft Done: " + sendresult);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("UploadRemoteRaft Done: " + sendresult);
+            }
 
             return counter + 1;
         }
@@ -288,7 +358,10 @@ namespace RaftMMO.Network
 
         public static void ReceiveRaftMMOMessages()
         {
-            RaftMMOLogger.LogVerbose("ReceiveRaftMMOMessages");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("ReceiveRaftMMOMessages");
+            }
 
             uint countofmessages = 0;
             uint messagereadsuccesscount = 0;
@@ -307,7 +380,10 @@ namespace RaftMMO.Network
                 }
             }
 
-            RaftMMOLogger.LogVerbose("ReceiveRaftMMOMessages Done (countofmessages: " + countofmessages + ", messagereadsuccesscount: " + messagereadsuccesscount + ")");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("ReceiveRaftMMOMessages Done (countofmessages: " + countofmessages + ", messagereadsuccesscount: " + messagereadsuccesscount + ")");
+            }
         }
 
         private static bool TryHandleMessage(CSteamID remoteSteamID, BaseMessage message)
@@ -362,7 +438,10 @@ namespace RaftMMO.Network
 
         private static BaseMessage ProcessSplitMessage(CSteamID steamID, SplitMessage splitMessage, out bool success)
         {
-            RaftMMOLogger.LogVerbose("ProcessSplitMessage: " + splitMessage.id + ", " + splitMessage.index + ", " + splitMessage.totalnumber);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("ProcessSplitMessage: " + splitMessage.id + ", " + splitMessage.index + ", " + splitMessage.totalnumber);
+            }
 
             if (splitMessage.index == 0)
             {
@@ -411,7 +490,10 @@ namespace RaftMMO.Network
 
         private static BaseMessage ReassembleSplitMessages(List<SplitMessage> splitMessages)
         {
-            RaftMMOLogger.LogVerbose("ReassembleSplitMessages: " + splitMessages.Count);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("ReassembleSplitMessages: " + splitMessages.Count);
+            }
 
             MemoryStream memoryStream = new MemoryStream();
             foreach (var splitMessage in splitMessages)
@@ -420,14 +502,20 @@ namespace RaftMMO.Network
             }
             memoryStream.Position = 0;
 
-            RaftMMOLogger.LogVerbose("ReassembleSplitMessages Done: " + memoryStream.Length);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("ReassembleSplitMessages Done: " + memoryStream.Length);
+            }
 
             return DeserializeMessage(memoryStream);
         }
 
         public static void RequestFullRaftUpdate()
         {
-            RaftMMOLogger.LogVerbose("RequestFullRaftUpdate");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("RequestFullRaftUpdate");
+            }
 
             if (Raft_Network.IsHost)
             {
@@ -441,7 +529,10 @@ namespace RaftMMO.Network
                 SendMessage(ComponentManager<Raft_Network>.Value.HostID, new BaseMessage(MessageType.REQUEST_FULL_RAFT, true));
             }
 
-            RaftMMOLogger.LogVerbose("RequestFullRaftUpdate Done!");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("RequestFullRaftUpdate Done!");
+            }
         }
 
         private static void ProcessClientMessage(CSteamID steamID, BaseMessage message)
@@ -542,7 +633,10 @@ namespace RaftMMO.Network
             if (message == null)
                 return;
 
-            RaftMMOLogger.LogVerbose("ProcessHostMessage: " + message.type + ", " + RemoteSession.IsConnectedPlayer(steamID) + ", " + message.handshake);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("ProcessHostMessage: " + message.type + ", " + RemoteSession.IsConnectedPlayer(steamID) + ", " + message.handshake);
+            }
 
             if (message.type == MessageType.REQUEST_CONNECTION)
             {
@@ -649,9 +743,10 @@ namespace RaftMMO.Network
 
                 RaftMMOLogger.LogDebug("MessageType.FULL_RAFT: " + (message as FullRaftMessage).counter);
 
-                RaftMMOLogger.LogVerbose("MessageType.FULL_RAFT:\n"
-                        + "Blocks received for removal: " + (message as RaftDeltaMessage).removed_data.blockData + "\n"
-                        + "Blocks received for adding: " + (message as RaftDeltaMessage).added_data.blockData);
+                if (SettingsManager.Settings.LogVerbose)
+                {
+                    RaftMMOLogger.LogVerbose("MessageType.FULL_RAFT:\n" + "Blocks received for removal: " + (message as RaftDeltaMessage).removed_data.blockData + "\n" + "Blocks received for adding: " + (message as RaftDeltaMessage).added_data.blockData);
+                }
 
                 RemoteSession.HandleRaftPositionUpdate(message as IPositionUpdateMessage);
                 RemoteRaft.ReplaceRaftParts((message as FullRaftMessage).added_data);
@@ -670,9 +765,10 @@ namespace RaftMMO.Network
 
                 RaftMMOLogger.LogDebug("MessageType.RAFT_DELTA: " + (message as RaftDeltaMessage).counter);
 
-                RaftMMOLogger.LogVerbose("MessageType.RAFT_DELTA:\n"
-                        + "Blocks received for removal: " + (message as RaftDeltaMessage).removed_data.blockData + "\n"
-                        + "Blocks received for adding: " + (message as RaftDeltaMessage).added_data.blockData);
+                if (SettingsManager.Settings.LogVerbose)
+                {
+                    RaftMMOLogger.LogVerbose("MessageType.RAFT_DELTA:\n" + "Blocks received for removal: " + (message as RaftDeltaMessage).removed_data.blockData + "\n" + "Blocks received for adding: " + (message as RaftDeltaMessage).added_data.blockData);
+                }
 
                 RemoteRaft.RemoveRaftParts((message as RaftDeltaMessage).removed_data);
                 RemoteRaft.AddRaftParts((message as RaftDeltaMessage).added_data);

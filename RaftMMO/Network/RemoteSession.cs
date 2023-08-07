@@ -33,8 +33,6 @@ namespace RaftMMO.Network
             }
         }
 
-        private static Stopwatch uploadLocalRaftStopwatch = new Stopwatch();
-        private static Stopwatch uploadPosUpdateStopwatch = new Stopwatch();
         private static Stopwatch connectingToPlayerStopwatch = new Stopwatch();
         private static Stopwatch lastTimeWeReceivedRaftPosUpdate = new Stopwatch();
         private static Stopwatch joinLobbyStopwatch = new Stopwatch();
@@ -64,8 +62,6 @@ namespace RaftMMO.Network
         public static int RemoteHandShake { get; private set; } = 0;
         public static int LocalHandShake { get; private set; } = 0;
 
-        private static int raftUpdateCounter = 0;
-
 
         public static bool IsConnectedToPlayer
         {
@@ -74,9 +70,19 @@ namespace RaftMMO.Network
                 if (/*!IsInLobby() ||*/ isConnectingToPlayer || connectedPlayerIndex < 0 || connectedPlayerIndex >= lobbyPlayers.Count)
                     return false;
 
-                if (!IsInConnectionRange || (lastTimeWeReceivedRaftPosUpdate.IsRunning && lastTimeWeReceivedRaftPosUpdate.ElapsedMilliseconds > 10000))
+                if (!IsInConnectionRange
+                    || (lastTimeWeReceivedRaftPosUpdate.IsRunning && lastTimeWeReceivedRaftPosUpdate.ElapsedMilliseconds > 10000))
                 {
+                    if (SettingsManager.Settings.LogVerbose)
+                    {
+                        if (SettingsManager.Settings.LogVerbose)
+                        {
+                            RaftMMOLogger.LogVerbose($"IsConnectedToPlayer disconnects: IsInConnectionRange: {IsInConnectionRange}, lastTimeWeReceivedRaftPosUpdate.ElapsedMilliseconds: {lastTimeWeReceivedRaftPosUpdate.ElapsedMilliseconds}");
+                        }
+                    }
                     MessageManager.SendDisconnectMessage(lobbyPlayers[connectedPlayerIndex], true, true);
+                    RaftMMOCoroutines.StopUploadLocalRaftCoroutine();
+                    RaftMMOCoroutines.StopUploadPosUpdateCoroutine();
                     connectedPlayerIndex = -1;
                     ConnectedSessionID = null;
                     RefreshPlayerList();
@@ -101,7 +107,19 @@ namespace RaftMMO.Network
         private static List<RequestingPlayer> wasConnectedPlayers = new List<RequestingPlayer>();
 
         private static bool isFirstUpdate = true;
-        private static Stopwatch firstUpdateTime = null;
+        private static Stopwatch cooldownTime = null;
+
+        public static bool IsInCoolDown(out long remainingMilliSeconds)
+        {
+            if (cooldownTime != null && cooldownTime.ElapsedMilliseconds < SettingsManager.Settings.GlobalMeetCoolDown)
+            {
+                remainingMilliSeconds = SettingsManager.Settings.GlobalMeetCoolDown - cooldownTime.ElapsedMilliseconds;
+                return true;
+            }
+
+            remainingMilliSeconds = 0;
+            return false;
+        }
 
         public static void Update()
         {
@@ -113,23 +131,28 @@ namespace RaftMMO.Network
                 isFirstUpdate = false;
                 if (!Globals.TEMPDEBUGNoStartCoolDown)
                 {
-                    firstUpdateTime = new Stopwatch();
-                    firstUpdateTime.Start();
+                    cooldownTime = new Stopwatch();
+                    cooldownTime.Start();
                 }
                 return;
             }
 
-            if (firstUpdateTime != null)
+            if (cooldownTime != null)
             {
-                if (firstUpdateTime.ElapsedMilliseconds < SettingsManager.Settings.GlobalMeetCoolDown)
+                if (cooldownTime.ElapsedMilliseconds < SettingsManager.Settings.GlobalMeetCoolDown)
                 {
                     return;
                 }
                 else
                 {
-                    firstUpdateTime.Stop();
-                    firstUpdateTime = null;
+                    cooldownTime.Stop();
+                    cooldownTime = null;
                 }
+            }
+
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose($"RemoteSession.Update");
             }
 
             if (BuoyManager.IsCloseEnoughToConnect())
@@ -161,6 +184,13 @@ namespace RaftMMO.Network
                 {
                     wasConnectedToPlayer = false;
                     wasConnectedPlayers.Add(new RequestingPlayer(wasConnectedToPlayerSteamID, wasConnectedToPlayerSessionID, 0));
+
+                    if (SettingsManager.Settings.GlobalMeetCoolDown > 0)
+                    {
+                        cooldownTime = new Stopwatch();
+                        cooldownTime.Start();
+                        return;
+                    }
                 }
 
                 if (RemoteHandShake != 0)
@@ -174,11 +204,10 @@ namespace RaftMMO.Network
                 }
 
                 RemoteRaft.SetLastUpdateCounter(-1);
-                raftUpdateCounter = 0;
                 isFirstPositionUpdate = true;
                 Globals.RemotePosRotation = 360f;
-                uploadPosUpdateStopwatch.Stop();
-                uploadLocalRaftStopwatch.Stop();
+                RaftMMOCoroutines.StopUploadLocalRaftCoroutine();
+                RaftMMOCoroutines.StopUploadPosUpdateCoroutine();
                 ConnectToRandomPlayerWithRaftMMOMod();
             }
 
@@ -202,18 +231,8 @@ namespace RaftMMO.Network
                     lobbies.Clear();
                 }
 
-                if (!uploadPosUpdateStopwatch.IsRunning || uploadPosUpdateStopwatch.ElapsedMilliseconds >= Globals.PositionUpdateFrequency)
-                {
-                    MessageManager.UploadLocalPosUpdates(lobbyPlayers[connectedPlayerIndex]);
-                    uploadPosUpdateStopwatch.Restart();
-                }
-
-                if (!uploadLocalRaftStopwatch.IsRunning || uploadLocalRaftStopwatch.ElapsedMilliseconds >= Globals.RaftUpdateFrequency)
-                {
-                    raftUpdateCounter = MessageManager.UploadLocalRaft(lobbyPlayers[connectedPlayerIndex], raftUpdateCounter);
-                    MessageManager.UploadListOfPlayers(lobbyPlayers[connectedPlayerIndex], ClientSession.GetSessionPlayers().Select(p => p.steamID.m_SteamID).ToArray());
-                    uploadLocalRaftStopwatch.Restart();
-                }
+                RaftMMOCoroutines.StartUploadLocalRaftCoroutine();
+                RaftMMOCoroutines.StartUploadPosUpdateCoroutine();
             }
         }
 
@@ -230,8 +249,8 @@ namespace RaftMMO.Network
             lobbyPlayers.Clear();
             requestingPlayers.Clear();
 
-            uploadLocalRaftStopwatch.Stop();
-            uploadPosUpdateStopwatch.Stop();
+            RaftMMOCoroutines.StopUploadLocalRaftCoroutine();
+            RaftMMOCoroutines.StopUploadPosUpdateCoroutine();
             connectingToPlayerStopwatch.Stop();
             lastTimeWeReceivedRaftPosUpdate.Stop();
 
@@ -242,8 +261,8 @@ namespace RaftMMO.Network
 
             isFirstPositionUpdate = true;
             isFirstUpdate = true;
-            firstUpdateTime?.Stop();
-            firstUpdateTime = null;
+            cooldownTime?.Stop();
+            cooldownTime = null;
         }
 
         private static void ConnectToRandomPlayerWithRaftMMOMod()
@@ -341,7 +360,10 @@ namespace RaftMMO.Network
 
         private static void AcceptConnectionRequest(CSteamID steamID, string remoteSessionID, int handshake)
         {
-            RaftMMOLogger.LogVerbose("AcceptConnectionRequest: " + handshake);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("AcceptConnectionRequest: " + handshake);
+            }
 
             if (!BuoyManager.IsCloseEnoughToConnect() || !CanConnectWithThisRaft(steamID.m_SteamID, remoteSessionID))
             {
@@ -352,30 +374,48 @@ namespace RaftMMO.Network
             MessageManager.SendMessage(steamID, new AcceptConnectionMessage(handshake));
             DoConnect(remoteSessionID, handshake);
 
-            RaftMMOLogger.LogVerbose("AcceptConnectionRequest Done!");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("AcceptConnectionRequest Done!");
+            }
         }
 
         private static void RejectConnectionRequest(CSteamID steamID)
         {
-            RaftMMOLogger.LogVerbose("RejectConnectionRequest");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("RejectConnectionRequest");
+            }
 
             MessageManager.SendMessage(steamID, new BaseMessage(MessageType.REJECT_CONNECTION, true));
 
-            RaftMMOLogger.LogVerbose("RejectConnectionRequest Done!");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("RejectConnectionRequest Done!");
+            }
         }
 
         private static void SendConnectionRequest(CSteamID steamID)
         {
-            RaftMMOLogger.LogVerbose("SendConnectionRequest");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("SendConnectionRequest");
+            }
 
             MessageManager.SendMessage(steamID, new RequestConnectionMessage());
 
-           RaftMMOLogger.LogVerbose("SendConnectionRequest Done!");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("SendConnectionRequest Done!");
+            }
         }
 
         public static void HandleRequestConnection(CSteamID steamID, string remoteSessionID, int handshake)
         {
-           RaftMMOLogger.LogVerbose("HandleRequestConnection: " + IsConnectedToPlayer + ", handshake: " + handshake);
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("HandleRequestConnection: " + IsConnectedToPlayer + ", handshake: " + handshake);
+            }
 
             if (!BuoyManager.IsCloseEnoughToConnect() || !CanConnectWithThisRaft(steamID.m_SteamID, remoteSessionID))
             {
@@ -406,12 +446,18 @@ namespace RaftMMO.Network
                 requestingPlayers.Add(new RequestingPlayer(steamID, remoteSessionID, handshake));
             }
 
-           RaftMMOLogger.LogVerbose("HandleRequestConnection Done: " + requestingPlayers.Count);
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("HandleRequestConnection Done: " + requestingPlayers.Count);
+            }
         }
 
         public static void HandleAcceptConnection(CSteamID steamID, string remoteSessionID, int localhandshake, int remotehandshake)
         {
-            RaftMMOLogger.LogVerbose("HandleAcceptConnection: " + isConnectingToPlayer + ", localhandshake: " + localhandshake + ", remotehandshake: " + remotehandshake);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("HandleAcceptConnection: " + isConnectingToPlayer + ", localhandshake: " + localhandshake + ", remotehandshake: " + remotehandshake);
+            }
 
             if (isConnectingToPlayer
                 && connectedPlayerIndex >= 0 && connectedPlayerIndex < lobbyPlayers.Count
@@ -432,7 +478,10 @@ namespace RaftMMO.Network
                 MessageManager.SendDisconnectMessage(steamID, true, false, remotehandshake);
             }
 
-            RaftMMOLogger.LogVerbose("HandleAcceptConnection Done: " + isConnectingToPlayer);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("HandleAcceptConnection Done: " + isConnectingToPlayer);
+            }
         }
 
         private static bool CanConnectWithThisPlayer(ulong steamID)
@@ -440,9 +489,9 @@ namespace RaftMMO.Network
             if (SettingsManager.IsBlockedPlayer(steamID))
                 return false;
 
-            wasConnectedPlayers = wasConnectedPlayers.Where(p => !IsInGlobalCoolDown(p) && !IsInIndividualCoolDown(p, p.steamID.m_SteamID, p.remoteSessionID)).ToList();
+            wasConnectedPlayers = wasConnectedPlayers.Where(p => !IsInIndividualCoolDown(p, p.steamID.m_SteamID, p.remoteSessionID)).ToList();
 
-            return !wasConnectedPlayers.Any(p => IsInGlobalCoolDown(p) || IsInIndividualCoolDown(p, steamID));
+            return !wasConnectedPlayers.Any(p => IsInIndividualCoolDown(p, steamID));
         }
 
         private static bool CanConnectWithThisRaft(ulong steamID, string remoteSessionID)
@@ -450,15 +499,9 @@ namespace RaftMMO.Network
             if (SettingsManager.IsBlockedRaft(steamID, remoteSessionID))
                 return false;
 
-            wasConnectedPlayers = wasConnectedPlayers.Where(p => !IsInGlobalCoolDown(p) && !IsInIndividualCoolDown(p, p.steamID.m_SteamID, p.remoteSessionID)).ToList();
+            wasConnectedPlayers = wasConnectedPlayers.Where(p => !IsInIndividualCoolDown(p, p.steamID.m_SteamID, p.remoteSessionID)).ToList();
 
-            return !wasConnectedPlayers.Any(p => IsInGlobalCoolDown(p) || IsInIndividualCoolDown(p, steamID, remoteSessionID));
-        }
-
-        private static bool IsInGlobalCoolDown(RequestingPlayer player)
-        {
-            int globalCoolDown = SettingsManager.Settings.GlobalMeetCoolDown;
-            return globalCoolDown > 0 && player.timeSinceRequest.ElapsedMilliseconds < globalCoolDown;
+            return !wasConnectedPlayers.Any(p => IsInIndividualCoolDown(p, steamID, remoteSessionID));
         }
 
         private static bool IsInIndividualCoolDown(RequestingPlayer player, ulong steamID, string remoteSessionID = null)
@@ -466,7 +509,7 @@ namespace RaftMMO.Network
             if (steamID == player.steamID.m_SteamID
                 && (string.IsNullOrEmpty(remoteSessionID) || remoteSessionID == player.remoteSessionID))
             {
-                int individualCoolDown = SettingsManager.Settings.IndividualMeetCoolDown;
+                long individualCoolDown = SettingsManager.Settings.IndividualMeetCoolDown;
                 if (individualCoolDown > 0 && player.timeSinceRequest.ElapsedMilliseconds < individualCoolDown)
                 {
                     return true;
@@ -478,7 +521,10 @@ namespace RaftMMO.Network
 
         private static void DoConnect(string remoteSessionID, int handshake)
         {
-            RaftMMOLogger.LogVerbose("DoConnect: " + remoteSessionID + ", handshake: " + handshake);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("DoConnect: " + remoteSessionID + ", handshake: " + handshake);
+            }
 
             ConnectedSessionID = remoteSessionID;
             RemoteHandShake = handshake;
@@ -493,12 +539,18 @@ namespace RaftMMO.Network
 
             lastTimeWeReceivedRaftPosUpdate.Restart();
 
-            RaftMMOLogger.LogVerbose("DoConnect Done!");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("DoConnect Done!");
+            }
         }
 
         public static void HandleRejectConnection(CSteamID steamID)
         {
-           RaftMMOLogger.LogVerbose("HandleRejectConnection: " + connectionRejected);
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("HandleRejectConnection: " + connectionRejected);
+            }
 
             if (isConnectingToPlayer
                 && connectedPlayerIndex >= 0 && connectedPlayerIndex < lobbyPlayers.Count
@@ -507,14 +559,20 @@ namespace RaftMMO.Network
                 connectionRejected = true;
             }
 
-           RaftMMOLogger.LogVerbose("HandleRejectConnection Done: " + connectionRejected);
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("HandleRejectConnection Done: " + connectionRejected);
+            }
         }
 
         public static void HandleRaftPositionUpdate(IPositionUpdateMessage message)
         {
             lastTimeWeReceivedRaftPosUpdate.Restart();
 
-            RaftMMOLogger.LogVerbose("HandleRaftPositionUpdate");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("HandleRaftPositionUpdate");
+            }
 
             var raft = ComponentManager<Raft>.Value;
 
@@ -580,7 +638,10 @@ namespace RaftMMO.Network
 
             RemoteRaft.MoveTo(targetPos + Globals.CurrentPushAwayOffset, targetRot);
 
-            RaftMMOLogger.LogVerbose("HandleRaftPositionUpdate Done!");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("HandleRaftPositionUpdate Done!");
+            }
         }
 
         public static void HandleDisconnect(CSteamID steamID)
@@ -683,7 +744,10 @@ namespace RaftMMO.Network
 
         private static void RefreshPlayerList()
         {
-            RaftMMOLogger.LogVerbose("RefreshPlayerList");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("RefreshPlayerList");
+            }
 
             connectedPlayerIndex = -1;
             ConnectedSessionID = null;
@@ -739,12 +803,18 @@ namespace RaftMMO.Network
             lobbyPlayers.AddRange(favoriteLobbyPlayers);
             lobbyPlayers.AddRange(normalLobbyPlayers);
 
-            RaftMMOLogger.LogVerbose($"RefreshPlayerList Done: {lobbyPlayers.Count}, favorites: {favoriteLobbyPlayers.Count}");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose($"RefreshPlayerList Done: {lobbyPlayers.Count}, favorites: {favoriteLobbyPlayers.Count}");
+            }
         }
 
         private static void CancelLobbyJoining()
         {
-           RaftMMOLogger.LogVerbose("CancelLobbyJoining");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("CancelLobbyJoining");
+            }
 
             if (IsInLobby())
             {
@@ -766,12 +836,18 @@ namespace RaftMMO.Network
             isConnectingToPlayer = false;
             lobbyPlayers.Clear();
 
-           RaftMMOLogger.LogVerbose("CancelLobbyJoining Done!");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("CancelLobbyJoining Done!");
+            }
         }
 
         private static void SwitchLobby()
         {
-           RaftMMOLogger.LogVerbose("SwitchLobby");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("SwitchLobby");
+            }
 
             if (IsInLobby())
             {
@@ -788,7 +864,10 @@ namespace RaftMMO.Network
             lobbyPlayers.Clear();
             TryJoinLobby(joinedLobbyIndex + 1);
 
-           RaftMMOLogger.LogVerbose("SwitchLobby Done!");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("SwitchLobby Done!");
+            }
         }
 
         private static void RequestLobbyListAndJoinOne()
@@ -805,7 +884,10 @@ namespace RaftMMO.Network
 
         private static void OnRequestLobbyListResponse(LobbyMatchList_t param, bool bIOFailure)
         {
-           RaftMMOLogger.LogVerbose("OnRequestLobbyListResponse: ", param.m_nLobbiesMatching);
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("OnRequestLobbyListResponse: ", param.m_nLobbiesMatching);
+            }
 
             if (param.m_nLobbiesMatching == 0)
             {
@@ -821,7 +903,10 @@ namespace RaftMMO.Network
                 TryJoinLobby(0);
             }
 
-           RaftMMOLogger.LogVerbose("OnRequestLobbyListResponse Done!");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("OnRequestLobbyListResponse Done!");
+            }
         }
 
         private static void OnLobbyEntered(LobbyEnter_t param, bool bIOFailure)
@@ -834,7 +919,10 @@ namespace RaftMMO.Network
                 return;
             }
 
-           RaftMMOLogger.LogVerbose("OnLobbyEntered");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("OnLobbyEntered");
+            }
 
             if (param.m_EChatRoomEnterResponse == (uint)EChatRoomEnterResponse.k_EChatRoomEnterResponseSuccess)
             {
@@ -857,7 +945,10 @@ namespace RaftMMO.Network
                 }
             }
 
-           RaftMMOLogger.LogVerbose("OnLobbyEntered Done!");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("OnLobbyEntered Done!");
+            }
         }
 
         private static void TryJoinLobby(int index)
@@ -877,18 +968,27 @@ namespace RaftMMO.Network
 
         private static void CreateNewLobby()
         {
-           RaftMMOLogger.LogVerbose("CreateNewLobby");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("CreateNewLobby");
+            }
 
             lobbyCreatedCallResult = CallResult<LobbyCreated_t>.Create(OnCreateLobby);
             lobbyCreatedCallResult.Set(SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeInvisible, 250));
             joinLobbyStopwatch.Restart();
 
-           RaftMMOLogger.LogVerbose("CreateNewLobby Done!");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("CreateNewLobby Done!");
+            }
         }
 
         private static void OnCreateLobby(LobbyCreated_t param, bool bIOFailure)
         {
-           RaftMMOLogger.LogVerbose("OnCreateLobby");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("OnCreateLobby");
+            }
 
             if (param.m_eResult == EResult.k_EResultOK)
             {
@@ -903,7 +1003,10 @@ namespace RaftMMO.Network
                 CancelLobbyJoining();
             }
 
-            RaftMMOLogger.LogVerbose("OnCreateLobby Done: ", param.m_eResult, " (", joinedLobbyIndex, ", ", lobbies.Count, ")");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("OnCreateLobby Done: ", param.m_eResult, " (", joinedLobbyIndex, ", ", lobbies.Count, ")");
+            }
         }
 
         private static void JoinedLobby(int index)

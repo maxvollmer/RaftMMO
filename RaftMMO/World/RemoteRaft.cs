@@ -136,19 +136,28 @@ namespace RaftMMO.World
 
         public static void ReplaceRaftParts(SerializableData.RaftData raftData)
         {
-            RaftMMOLogger.LogVerbose("ReplaceRaftParts: " + raftData.blockData.Length);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("ReplaceRaftParts: " + raftData.blockData.Length);
+            }
 
             foreach (var go in blockCache.Values) Object.Destroy(go);
             blockCache.Clear();
 
             AddRaftParts(raftData);
 
-           RaftMMOLogger.LogVerbose("ReplaceRaftParts Done!");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("ReplaceRaftParts Done!");
+            }
         }
 
         public static void RemoveRaftParts(SerializableData.RaftData raftData)
         {
-           RaftMMOLogger.LogVerbose("RemoveRaftParts: " + raftData.blockData.Length + ", " + blockCache.Count);
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("RemoveRaftParts: " + raftData.blockData.Length + ", " + blockCache.Count);
+            }
 
             bool couldntfindthethingerror = false;
 
@@ -158,7 +167,10 @@ namespace RaftMMO.World
             {
                 if (block == null)
                 {
-                    RaftMMOLogger.LogVerbose("RemoteRaft.RemoveRaftParts: Received null block");
+                    if (SettingsManager.Settings.LogVerbose)
+                    {
+                        RaftMMOLogger.LogVerbose("RemoteRaft.RemoveRaftParts: Received null block");
+                    }
                     continue;
                 }
 
@@ -169,7 +181,10 @@ namespace RaftMMO.World
                 else
                 {
                     couldntfindthethingerror = true;
-                    RaftMMOLogger.LogVerbose("RemoteRaft.RemoveRaftParts: Error: Couldn't find block: ", block);
+                    if (SettingsManager.Settings.LogVerbose)
+                    {
+                        RaftMMOLogger.LogVerbose("RemoteRaft.RemoveRaftParts: Error: Couldn't find block: ", block);
+                    }
                 }
             }
 
@@ -177,18 +192,25 @@ namespace RaftMMO.World
             {
                 // Something went wrong, we are out of sync, request full raft update
                 RaftMMOLogger.LogWarning("RemoteRaft.RemoveRaftParts went wrong, requesting full raft update");
-                RaftMMOLogger.LogVerbose("RemoteRaft.RemoveRaftParts went wrong, requesting full raft update.\n",
-                    "Blocks received for removal: ", raftData.blockData, "\n",
-                    "All current blocks: ", blockCacheCopy);
+                if (SettingsManager.Settings.LogVerbose)
+                {
+                    RaftMMOLogger.LogVerbose("RemoteRaft.RemoveRaftParts went wrong, requesting full raft update.\n", "Blocks received for removal: ", raftData.blockData, "\n", "All current blocks: ", blockCacheCopy);
+                }
                 MessageManager.RequestFullRaftUpdate();
             }
 
-           RaftMMOLogger.LogVerbose("RemoveRaftParts Done!");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("RemoveRaftParts Done!");
+            }
         }
 
         public static void AddRaftParts(SerializableData.RaftData raftData)
         {
-            RaftMMOLogger.LogVerbose("AddRaftParts: " + raftData.blockData.Length + ", " + blockCache.Count);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("AddRaftParts: " + raftData.blockData.Length + ", " + blockCache.Count);
+            }
 
             var blockCacheCopy = blockCache.Keys.ToArray();
 
@@ -198,30 +220,42 @@ namespace RaftMMO.World
             {
                 // Something went wrong, we are out of sync, request full raft update
                 RaftMMOLogger.LogWarning("RemoteRaft.AddRaftParts went wrong, requesting full raft update");
-                RaftMMOLogger.LogVerbose("RemoteRaft.AddRaftParts went wrong, requesting full raft update.\n"
-                        + "Blocks received for adding: " + raftData.blockData + "\n"
-                        + "All blocks before adding: " + blockCacheCopy + "\n"
-                        + "All blocks after adding: " + blockCache.Keys.ToArray());
+                if (SettingsManager.Settings.LogVerbose)
+                {
+                    RaftMMOLogger.LogVerbose("RemoteRaft.AddRaftParts went wrong, requesting full raft update.\n" + "Blocks received for adding: " + raftData.blockData + "\n" + "All blocks before adding: " + blockCacheCopy + "\n" + "All blocks after adding: " + blockCache.Keys.ToArray());
+                }
                 MessageManager.RequestFullRaftUpdate();
             }
 
-           RaftMMOLogger.LogVerbose("AddRaftParts Done!");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("AddRaftParts Done!");
+            }
         }
 
         private static void RemoveRaft()
         {
-           RaftMMOLogger.LogVerbose("RemoveRaft");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("RemoveRaft");
+            }
 
             ClearRaft();
 
             remoteRaft?.SetActive(false);
 
-            RaftMMOLogger.LogVerbose("RemoveRaft Done!");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("RemoveRaft Done!");
+            }
         }
 
         private static void ClearRaft()
         {
-           RaftMMOLogger.LogVerbose("ClearRaft");
+           if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("ClearRaft");
+            }
 
             DetachRemoteRaftChildren();
 
@@ -235,7 +269,10 @@ namespace RaftMMO.World
             RemoteRaftVelocity = Vector3.zero;
             RemoteRaftAngularVelocity = Vector3.zero;
 
-            RaftMMOLogger.LogVerbose("ClearRaft Done!");
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("ClearRaft Done!");
+            }
         }
 
         private static void DetachRemoteRaftChildren()

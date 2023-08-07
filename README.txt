@@ -1,14 +1,9 @@
 ﻿RaftMMO
 =======
 Author: Max Vollmer
-Patreon: https://www.patreon.com/maxvollmer
+Patreon: https://www.patreon.com/maxmakesmods
 Discord: https://discord.gg/jujwEGf62K
-Youtube: https://www.youtube.com/channel/UCMLx0EEXSe5NiQ8fQgtN9PQ
-
-VERSION 0.4.0-alpha
-
-Release date: 2023-01-25
-
+Youtube: https://www.youtube.com/MaxMakesMods
 =======
 This is a mod for Raft that adds support for meeting other rafts from other game sessions.
 

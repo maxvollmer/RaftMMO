@@ -1,4 +1,6 @@
-﻿using System;
+﻿using RaftMMO.ModSettings;
+using RaftMMO.Utilities;
+using System;
 using UnityEngine;
 
 namespace RaftMMO.Network.SerializableData
@@ -31,10 +33,15 @@ namespace RaftMMO.Network.SerializableData
         [NonSerialized()]
         private bool hasHash = false;
 
-        public RaftColliderData(Collider collider)
+        public RaftColliderData(Transform raftRoot, Block parent, Collider collider)
         {
-            position = new Vector(collider.transform.position);
-            rotation = new Vector(collider.transform.rotation.eulerAngles);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose($"RaftColliderData: {raftRoot.position}, {collider.transform.position}, {raftRoot.InverseTransformPoint(collider.transform.position)}");
+            }
+
+            position = new Vector(raftRoot.InverseTransformPoint(collider.transform.position));
+            rotation = new Vector((Quaternion.Inverse(raftRoot.rotation) * collider.transform.rotation).eulerAngles);
             scale = new Vector(ClampAndNormalizeScale(collider.transform.lossyScale));
             isLadder = false;
 

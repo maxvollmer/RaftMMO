@@ -31,11 +31,11 @@ namespace RaftMMO.World
 
             if (reciever.hasSignal)
             {
-                var buoyLocations = BuoyManager.BuoyLocations.ToList();
+                var buoyLocations = BuoyManager.VisibleBuoyLocations.ToList();
 
                 while (buoyReceiverDots.Count > buoyLocations.Count)
                 {
-                    foreach (var buoyReceiverDot in buoyReceiverDots[buoyReceiverDots.Count].Values)
+                    foreach (var buoyReceiverDot in buoyReceiverDots[buoyReceiverDots.Count - 1].Values)
                     {
                         Object.Destroy(buoyReceiverDot.gameObject);
                     }

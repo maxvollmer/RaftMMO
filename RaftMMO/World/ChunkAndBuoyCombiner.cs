@@ -45,7 +45,7 @@ namespace RaftMMO.World
                 if (pointToCheck == null || pointToCheck.rule == null)
                     return false;
 
-                foreach (var buoyLocation in BuoyManager.BuoyLocations)
+                foreach (var buoyLocation in BuoyManager.VisibleBuoyLocations)
                 {
                     if (IsTooClose(pointToCheck, buoyLocation.Vector2))
                     {
@@ -115,17 +115,18 @@ namespace RaftMMO.World
             }
         }
 
-        public static bool DoesBuoyFit(Vector2 buoyLocation)
+        public static bool DoesBuoyFit(Vector2 buoyLocation, out int numIslandsInWay)
         {
+            numIslandsInWay = 0;
             bool result = true;
             foreach (var pointToCheck in GetAllChunkPoints().Where(p => p.HasSpawnedObject))
             {
                 if (IsTooClose(pointToCheck, buoyLocation))
                 {
+                    numIslandsInWay++;
                     result = false;
                 }
             }
-
             return result;
         }
     }

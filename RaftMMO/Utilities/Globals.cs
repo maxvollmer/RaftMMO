@@ -4,7 +4,7 @@ namespace RaftMMO.Utilities
 {
     public class Globals
     {
-        public static int ModNetworkVersion { get; } = 20;
+        public static int ModNetworkVersion { get; } = 21;
         public static int SteamNetworkChannel { get; } = 1339;
 
         public static int ReliableMessageSizeLimit { get; } = 1000000;
@@ -24,6 +24,7 @@ namespace RaftMMO.Utilities
 
         public static Vector3 CurrentRaftMeetingPoint { get; set; } = new Vector3(9999999999999f, -9999999999999f, 9999999999999f);
         public static float CurrentRaftMeetingPointDistance { get; set; } = 9999999999999f;
+        public static int CurrentRaftMeetingPointNumIslandsInWay { get; set; } = 0;
         public static Vector3 CurrentPushAwayOffset { get; set; } = Vector3.zero;
 
         public static float RemotePosRotation { get; set; } = 360f;
@@ -36,6 +37,9 @@ namespace RaftMMO.Utilities
 
         public static string LobbyAllName = "de.maxvollmer.raftmmo.all";
         public static string LobbyConnectName = "de.maxvollmer.raftmmo.lobby";
+
+
+        public static int REDO_PLAYER_COUNTER_TIMEOUT = 5000;
 
 
 

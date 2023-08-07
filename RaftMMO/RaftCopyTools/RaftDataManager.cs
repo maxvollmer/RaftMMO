@@ -4,6 +4,7 @@ using System.Linq;
 using RaftMMO.Network.Messages;
 using SerializableData = RaftMMO.Network.SerializableData;
 using RaftMMO.Utilities;
+using RaftMMO.ModSettings;
 
 namespace RaftMMO.RaftCopyTools
 {
@@ -24,9 +25,12 @@ namespace RaftMMO.RaftCopyTools
             return Clients[steamID];
         }
 
-        public RaftDeltaMessage CreateRaftDeltaMessage(SerializableData.RaftData raftData, bool fullRaftUpdateRequested, bool worldpos)
+        public RaftDeltaMessage CreateRaftDeltaMessage(SerializableData.RaftData raftData, bool fullMsg, bool worldpos)
         {
-            RaftMMOLogger.LogVerbose("CreateRaftRGDMessage: " + fullRaftUpdateRequested);
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("CreateRaftRGDMessage, fullMsg: " + fullMsg);
+            }
 
             var raftBlockData = new HashSet<SerializableData.RaftBlockData>();
             raftBlockData.UnionWith(raftData.blockData);
@@ -36,7 +40,7 @@ namespace RaftMMO.RaftCopyTools
 
             RaftDeltaMessage msg;
 
-            if (fullRaftUpdateRequested)
+            if (fullMsg)
             {
                 var raft = ComponentManager<Raft>.Value;
                 var pos = raft.transform.position;
@@ -59,11 +63,14 @@ namespace RaftMMO.RaftCopyTools
             msg.added_data = new SerializableData.RaftData(addedBlocks.ToArray());
             msg.removed_data = new SerializableData.RaftData(removedBlocks.ToArray());
 
-            RaftMMOLogger.LogVerbose("RaftDataManager.CreateRaftDeltaMessage Done:\n"
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                RaftMMOLogger.LogVerbose("RaftDataManager.CreateRaftDeltaMessage Done:\n"
                     + "raftBlockData: " + GameObjectDebugger.DebugPrint(raftBlockData.ToArray()) + "\n"
                     + "cachedBlocks: " + GameObjectDebugger.DebugPrint(cachedBlocks.ToArray()) + "\n"
                     + "addedBlocks: " + GameObjectDebugger.DebugPrint(addedBlocks.ToArray()) + "\n"
                     + "removedBlocks: " + GameObjectDebugger.DebugPrint(removedBlocks.ToArray()));
+            }
 
             cachedBlocks = raftBlockData;
 

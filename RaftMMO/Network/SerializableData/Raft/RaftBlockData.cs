@@ -69,7 +69,7 @@ namespace RaftMMO.Network.SerializableData
         [NonSerialized()]
         private bool hasHash = false;
 
-        public RaftBlockData(Block block)
+        public RaftBlockData(Transform raftRoot, Block block)
         {
             this.itemIndex = block.buildableItem.UniqueIndex;
             this.dpsType = (int)block.dpsType;
@@ -123,8 +123,8 @@ namespace RaftMMO.Network.SerializableData
                 this.bitmaskValue = 0;
             }
 
-            this.colliders = block.GetComponentsInChildren<Collider>().Where(collider => RaftCopier.IsColliderForSending(block, collider)).Select(collider => new RaftColliderData(collider)).ToArray();
-            this.plants = block.GetComponentsInChildren<Plant>().Select(plant => new RaftPlantData(plant)).ToArray();
+            this.colliders = block.GetComponentsInChildren<Collider>().Where(collider => RaftCopier.IsColliderForSending(block, collider)).Select(collider => new RaftColliderData(raftRoot, block, collider)).ToArray();
+            this.plants = block.GetComponentsInChildren<Plant>().Select(plant => new RaftPlantData(raftRoot, block, plant)).ToArray();
         }
 
         // for serialization

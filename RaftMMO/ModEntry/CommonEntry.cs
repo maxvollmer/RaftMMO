@@ -83,6 +83,8 @@ namespace RaftMMO.ModEntry
 
             ModDataGetter = null;
             ModJsonLib = null;
+
+            RaftMMOCoroutines.Destroy();
         }
 
         public static bool CanWePlay
@@ -102,6 +104,8 @@ namespace RaftMMO.ModEntry
             {
                 return;
             }
+
+            PlayerCounter.Update();
 
             try
             {
@@ -127,6 +131,7 @@ namespace RaftMMO.ModEntry
                     RaftDataManager.Clear();
                     SteamHelper.CloseAll();
                     LightSingularityPatch.Destroy();
+                    RaftMMOCoroutines.Destroy();
                 }
             }
             catch (System.Exception e)

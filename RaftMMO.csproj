@@ -66,9 +66,11 @@
     <Compile Include="RaftMMO\Network\Messages\SplitMessage.cs" />
     <Compile Include="RaftMMO\Network\RaftMMOJsonContractResolver.cs" />
     <Compile Include="RaftMMO\Network\SerializableData\Simple\HandShake.cs" />
+    <Compile Include="RaftMMO\Utilities\RaftMMOCoroutines.cs" />
     <Compile Include="RaftMMO\Utilities\GameObjectHelper.cs" />
     <Compile Include="RaftMMO\Utilities\I18NHelper.cs" />
     <Compile Include="RaftMMO\Utilities\ImageLoader.cs" />
+    <Compile Include="RaftMMO\Utilities\PlayerCounter.cs" />
     <Compile Include="RaftMMO\Utilities\RaftMMOLogger.cs" />
     <Compile Include="RaftMMO\Utilities\SimpleJson\SimpleJson.cs" />
     <Compile Include="RaftMMO\World\LocalRaft.cs" />

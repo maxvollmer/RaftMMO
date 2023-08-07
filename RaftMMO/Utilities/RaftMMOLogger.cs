@@ -11,6 +11,7 @@ namespace RaftMMO.Utilities
     public class RaftMMOLogger
     {
         private static bool logToFileFailed = false;
+        private static object _logFileLock = new object();
 
         public static IModLogger ModLogger { get; set; } = null;
 
@@ -102,16 +103,19 @@ namespace RaftMMO.Utilities
 
         private static void LogToFile(string msg)
         {
-            try
+            lock(_logFileLock)
             {
-                File.AppendAllText(SettingsSaver.LogFile, "[" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss.fff") + "] " + msg + "\n", Encoding.UTF8);
-            }
-            catch (Exception e)
-            {
-                if (!logToFileFailed)
+                try
                 {
-                    logToFileFailed = true;
-                    Debug.LogError("Couldn't log to file: " + e);
+                    File.AppendAllText(SettingsSaver.LogFile, "[" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss.fff") + "] " + msg + "\n", Encoding.UTF8);
+                }
+                catch (Exception e)
+                {
+                    if (!logToFileFailed)
+                    {
+                        logToFileFailed = true;
+                        Debug.LogError("Couldn't log to file: " + e);
+                    }
                 }
             }
         }

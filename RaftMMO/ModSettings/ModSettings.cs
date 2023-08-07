@@ -15,8 +15,8 @@ namespace RaftMMO.ModSettings
             public bool LogVerbose = false;
             public bool OnlyMeetSteamFriends = false;
             public bool EnableBuoySmoke = true;
-            public int GlobalMeetCoolDown = 1 * 60 * 1000;
-            public int IndividualMeetCoolDown = 15 * 60 * 1000;
+            public long GlobalMeetCoolDown = 1 * 60 * 1000;
+            public long IndividualMeetCoolDown = 15 * 60 * 1000;
         }
 
         public SerializableModSettings Serialize()
@@ -63,7 +63,7 @@ namespace RaftMMO.ModSettings
         public bool OnlyMeetSteamFriends = false;
         public bool EnableBuoySmoke = true;
 
-        public int GlobalMeetCoolDown = 1 * 60 * 1000;
-        public int IndividualMeetCoolDown = 15 * 60 * 1000;
+        public long GlobalMeetCoolDown = 1 * 30 * 1000;
+        public long IndividualMeetCoolDown = 10 * 60 * 1000;
     }
 }

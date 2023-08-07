@@ -1,3 +1,19 @@
+0.5.0-alpha
+* Fixed bug that caused remote raft to not become visible
+* Fixed bug that caused local raft and/or players to jitter while connected to remote raft
+* Fixed exception in receiver patch
+* Improved performance
+
+0.4.2-alpha
+* Feature identical to previous release. Just bumped the version due to a typo on raftmodding.com
+
+0.4.1-alpha
+* Improved detection of free ocean space for meetups
+* Fixed RaftMMO player counter only counting players who have their menu open.
+* Added dedicated status tab in RaftMMO menu that shows number of RaftMMO players and your current meetup status
+  (e.g. shows if you are too close to an island to meet)
+* Reduced meetup cooldown periods to 30 seconds globally and 10 minutes per raft
+
 0.4.0-alpha
 * The buoys are dead, long live the buoy!
    Completely reworked how meeting other rafts works. There are no more random buoys spawning in the ocean.

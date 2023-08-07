@@ -1,11 +1,12 @@
 ﻿using HarmonyLib;
+using RaftMMO.ModSettings;
+using RaftMMO.Network.SerializableData;
 using RaftMMO.Utilities;
 using RaftMMO.World;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using SerializableData = RaftMMO.Network.SerializableData;
 
 namespace RaftMMO.RaftCopyTools
 {
@@ -14,29 +15,43 @@ namespace RaftMMO.RaftCopyTools
         private static SO_PipeColliderInfo[] pipeColliderInfos = null;
         private static PhysicMaterial defaultColliderMaterial = null;
 
-        public static SerializableData.RaftData CreateRaftData()
+        public static IEnumerator<RaftData> CreateRaftData()
         {
-            var raft = ComponentManager<Raft>.Value;
+            RaftBlockData[] blockData;
 
-            var backupRaftPosition = raft.transform.position;
-            var backupRaftRotation = raft.transform.rotation;
-            raft.transform.position = Vector3.zero;
-            raft.transform.rotation = Quaternion.identity;
-
-            SerializableData.RaftBlockData[] blockData;
             if (BuoyManager.IsCloseEnoughToBeVisible())
             {
-                blockData = raft.GetComponentsInChildren<Block>().Where(IsBlockForSending).Select(block => new SerializableData.RaftBlockData(block)).ToArray();
+                List<RaftBlockData> blockDataList = new List<RaftBlockData>();
+
+                var raft = ComponentManager<Raft>.Value;
+                var rawBlocks = raft.GetComponentsInChildren<Block>();
+
+                //var rawBlocks = BlockCreator.GetPlacedBlocks();
+
+                foreach (var rawBlock in rawBlocks)
+                {
+                    if (IsBlockForSending(rawBlock))
+                    {
+                        blockDataList.Add(new RaftBlockData(raft.transform, rawBlock));
+                    }
+                    yield return null;
+                }
+                blockData = blockDataList.ToArray();
             }
             else
             {
-                blockData = new SerializableData.RaftBlockData[0];
+                blockData = new RaftBlockData[0];
             }
 
-            raft.transform.position = backupRaftPosition;
-            raft.transform.rotation = backupRaftRotation;
+            if (SettingsManager.Settings.LogVerbose)
+            {
+                if (SettingsManager.Settings.LogVerbose)
+                {
+                    RaftMMOLogger.LogVerbose("CreateRaftData: IsCloseEnoughToBeVisible: " + BuoyManager.IsCloseEnoughToBeVisible() + ", blockData.Length: " + blockData.Length);
+                }
+            }
 
-            return new SerializableData.RaftData(blockData);
+            yield return new RaftData(blockData);
         }
 
         public static bool IsColliderForSending(Block block, Collider collider)
@@ -83,14 +98,14 @@ namespace RaftMMO.RaftCopyTools
         }
 
 
-        public static void RestoreRaftData(SerializableData.RaftData raftData, GameObject remoteRaft,
-            Dictionary<SerializableData.RaftBlockData, GameObject> blockCache, out bool alreadyhadthethingerror)
+        public static void RestoreRaftData(RaftData raftData, GameObject remoteRaft,
+            Dictionary<RaftBlockData, GameObject> blockCache, out bool alreadyhadthethingerror)
         {
             alreadyhadthethingerror = false;
             RestoreBlocks(remoteRaft, raftData.blockData, blockCache, ref alreadyhadthethingerror);
         }
 
-        private static void RestoreColliders(GameObject blockObject, Block blockPrefab, IEnumerable<SerializableData.RaftColliderData> colliderData)
+        private static void RestoreColliders(Transform remoteRaftRoot, GameObject blockObject, Block blockPrefab, IEnumerable<RaftColliderData> colliderData)
         {
             if (defaultColliderMaterial == null)
             {
@@ -99,16 +114,18 @@ namespace RaftMMO.RaftCopyTools
 
             foreach (var collider in colliderData)
             {
-                var colliderObject = CopyCollider(collider, blockPrefab, defaultColliderMaterial);
-                colliderObject.transform.SetParent(blockObject.transform, false);
+                var colliderObject = CopyCollider(remoteRaftRoot, collider, blockPrefab, defaultColliderMaterial);
+                colliderObject.transform.SetParent(blockObject.transform, true);
             }
         }
 
-        private static void RestorePlants(GameObject blockObject, IEnumerable<SerializableData.RaftPlantData> plantData)
+        private static void RestorePlants(Transform remoteRaftRoot, GameObject blockObject, IEnumerable<RaftPlantData> plantData)
         {
             foreach (var plant in plantData)
             {
                 GameObject plantObject = new GameObject();
+                plantObject.transform.SetPositionAndRotation(remoteRaftRoot.TransformPoint(plant.position.Vector3), 
+                    remoteRaftRoot.rotation * Quaternion.Euler(plant.rotation.Vector3));
 
                 var localPlayer = ComponentManager<Raft_Network>.Value.GetLocalPlayer();
                 var plantPrefab = localPlayer.PlantManager.GetPlantByIndex(plant.plantUniqueItemIndex);
@@ -117,20 +134,19 @@ namespace RaftMMO.RaftCopyTools
                     foreach (var meshRenderer in plantPrefab.GetComponentsInChildren<MeshRenderer>())
                     {
                         var plantMeshObject = CopyMesh(meshRenderer, TileBitmaskType.All, 0);
-                        plantMeshObject.transform.position = plant.position.Vector3;
-                        plantMeshObject.transform.rotation = Quaternion.Euler(plant.rotation.Vector3);
+                        plantMeshObject.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
                         plantMeshObject.transform.localScale = plant.scale.Vector3;
-                        plantMeshObject.transform.SetParent(plantObject.transform, true);
+                        plantMeshObject.transform.SetParent(plantObject.transform, false);
                     }
                 }
 
-                plantObject.transform.SetParent(blockObject.transform, false);
+                plantObject.transform.SetParent(blockObject.transform, true);
             }
         }
 
         private static void RestoreBlocks(GameObject remoteRaft, 
-            SerializableData.RaftBlockData[] blockData,
-            Dictionary<SerializableData.RaftBlockData, GameObject> blockCache,
+            RaftBlockData[] blockData,
+            Dictionary<RaftBlockData, GameObject> blockCache,
             ref bool alreadyhadthethingerror)
         {
             var lights = new List<LightSingularityExternal>();
@@ -139,11 +155,18 @@ namespace RaftMMO.RaftCopyTools
             {
                 if (block == null)
                 {
-                    RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Received null block");
+                    if (SettingsManager.Settings.LogVerbose)
+                    {
+                        if (SettingsManager.Settings.LogVerbose)
+                        {
+                            RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Received null block");
+                        }
+                    }
                     continue;
                 }
 
                 GameObject blockObject = new GameObject();
+                blockObject.transform.SetPositionAndRotation(block.position.Vector3, Quaternion.Euler(block.rotation.Vector3));
 
                 try
                 {
@@ -220,22 +243,31 @@ namespace RaftMMO.RaftCopyTools
                     }
                     else
                     {
-                        RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Received invalid item index: ", block.itemIndex);
+                        if (SettingsManager.Settings.LogVerbose)
+                        {
+                            RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Received invalid item index: ", block.itemIndex);
+                        }
                     }
 
                     blockObject.transform.SetParent(remoteRaft.transform, false);
 
-                    RestorePlants(blockObject, block.plants);
-                    RestoreColliders(blockObject, blockPrefab, block.colliders);
+                    RestorePlants(remoteRaft.transform, blockObject, block.plants);
+                    RestoreColliders(remoteRaft.transform, blockObject, blockPrefab, block.colliders);
                 }
                 catch (System.Exception e)
                 {
-                    RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Caught exception when restoring block ", block, ": ", e);
+                    if (SettingsManager.Settings.LogVerbose)
+                    {
+                        RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Caught exception when restoring block ", block, ": ", e);
+                    }
                 }
 
                 if (blockCache.Remove(block))
                 {
-                    RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Error: Block already existed: ", block);
+                    if (SettingsManager.Settings.LogVerbose)
+                    {
+                        RaftMMOLogger.LogVerbose("RaftCopier.RestoreBlocks: Error: Block already existed: ", block);
+                    }
                     alreadyhadthethingerror = true;
                 }
 
@@ -276,7 +308,7 @@ namespace RaftMMO.RaftCopyTools
         {
             var particleObject = particleSystemRenderer.gameObject;
 
-            var newParticleObject = UnityEngine.Object.Instantiate(particleObject);
+            var newParticleObject = Object.Instantiate(particleObject);
             newParticleObject.transform.SetParent(null);
 
             ClearLayers(newParticleObject);
@@ -286,32 +318,32 @@ namespace RaftMMO.RaftCopyTools
             return newParticleObject;
         }
 
-        private static GameObject CopyCollider(SerializableData.RaftColliderData colliderData, Block blockPrefab, PhysicMaterial defaultMaterial)
+        private static GameObject CopyCollider(Transform remoteRaftRoot, RaftColliderData colliderData, Block blockPrefab, PhysicMaterial defaultMaterial)
         {
             var newColliderObject = new GameObject();
 
             Collider newCollider;
             switch (colliderData.type)
             {
-                case SerializableData.RaftColliderData.ColliderType.BOX:
+                case RaftColliderData.ColliderType.BOX:
                     newCollider = newColliderObject.AddComponent<BoxCollider>();
                     (newCollider as BoxCollider).size = colliderData.size.Vector3;
                     (newCollider as BoxCollider).center = colliderData.center.Vector3;
                     break;
-                case SerializableData.RaftColliderData.ColliderType.SPHERE:
+                case RaftColliderData.ColliderType.SPHERE:
                     newCollider = newColliderObject.AddComponent<SphereCollider>();
                     (newCollider as SphereCollider).radius = colliderData.size.x;
                     (newCollider as SphereCollider).center = colliderData.center.Vector3;
                     break;
-                case SerializableData.RaftColliderData.ColliderType.PIPEMESH:
+                case RaftColliderData.ColliderType.PIPEMESH:
                     newCollider = newColliderObject.AddComponent<MeshCollider>();
                     InitPipeMeshCollider(newCollider as MeshCollider, colliderData.bitMaskValue);
                     break;
-                case SerializableData.RaftColliderData.ColliderType.MESH:
+                case RaftColliderData.ColliderType.MESH:
                     newCollider = newColliderObject.AddComponent<MeshCollider>();
                     InitMeshCollider(newCollider as MeshCollider, blockPrefab);
                     break;
-                case SerializableData.RaftColliderData.ColliderType.INVALID:
+                case RaftColliderData.ColliderType.INVALID:
                 default:
                     return newColliderObject;
             }
@@ -319,8 +351,11 @@ namespace RaftMMO.RaftCopyTools
             newCollider.sharedMaterial = defaultMaterial;
             newCollider.material = defaultMaterial;
 
-            newColliderObject.transform.position = colliderData.position.Vector3;
-            newColliderObject.transform.rotation = Quaternion.Euler(colliderData.rotation.Vector3);
+            RaftMMOLogger.LogVerbose($"CopyCollider: {remoteRaftRoot.position}, {colliderData.position.Vector3}, {remoteRaftRoot.TransformPoint(colliderData.position.Vector3)}");
+
+            newColliderObject.transform.SetPositionAndRotation(remoteRaftRoot.TransformPoint(colliderData.position.Vector3),
+                remoteRaftRoot.rotation * Quaternion.Euler(colliderData.rotation.Vector3));
+
             newColliderObject.transform.localScale = colliderData.scale.Vector3;
             newColliderObject.layer = LayerMask.NameToLayer("Obstruction");
 
